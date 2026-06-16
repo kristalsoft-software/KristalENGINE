@@ -108,4 +108,4 @@ Have a feature request or found a bug? Open an [issue](../../issues) and let us 
 
 ##  License
 
-KristalENGINE is free to download and use. See [LICENSE](./LICENSE) for full terms.
+KristalENGINE is free to download and use. See [LICENSE](./LICENSE.txt) for full terms.
