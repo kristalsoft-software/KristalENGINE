@@ -1,0 +1,26 @@
+KRISTALSOFT YAZILIM LİSANS SÖZLEŞMESİ (EULA)
+Yayıncı: Kristalsoft (Eren Kocakgöl)
+
+Yazılım: KristalBASIC (Derleyici) ve KristalENGINE (Oyun Motoru / Editör)
+Bu lisans sözleşmesi, Kristalsoft tarafından sağlanan KristalBASIC ve KristalENGINE yazılımlarının ("Yazılım") kullanım şartlarını belirler. Yazılımı indirerek veya kullanarak aşağıdaki şartları kabul etmiş sayılırsınız:
+1. ÜCRETSİZ KULLANIM VE SÜRÜM GARANTİSİ (SÜRÜM 2.X)
+KristalBASIC 2.0 ve KristalENGINE 2 sürümleri ile bu sürümlere ait tüm alt güncellemeler (örneğin 2.1, 2.2, 2.9 vb.) sonsuza dek tamamen ücretsiz olarak dağıtılacaktır. Bu sürümleri ticari veya ticari olmayan herhangi bir amaçla, herhangi bir süre kısıtlaması olmaksızın ücretsiz olarak kullanabilirsiniz.
+2. KULLANICI ÜRETİMİ İÇERİKLERİN MÜLKİYETİ (SİZİN KODUNUZ, SİZİN PROJENİZ)
+Yazılım kullanılarak geliştirilen, derlenen ve dışa aktarılan tüm oyunlar, programlar ve kaynak kodları tamamen size (kullanıcıya) aittir.
+
+Ürettiğiniz yazılımları dilediğiniz gibi satabilir, dağıtabilir veya kapalı kaynak olarak lisanslayabilirsiniz.
+Kristalsoft, ürettiğiniz projeler üzerinden hiçbir hak, pay, komisyon veya telif ücreti (royalty) talep etmez.
+
+3. GELECEK SÜRÜMLER VE ÜCRETLENDİRME HAKKI
+Kristalsoft (Eren Kocakgöl), Yazılımın gelecekteki ana sürümlerini (örneğin KristalBASIC 3.0, KristalENGINE 3 ve sonrası) ücretli yapma, farklı lisans modellerine geçirme veya abonelik sistemine bağlama hakkını saklı tutar. Ancak bu durum, halihazırda ücretsiz olarak yayınlanmış olan 2.x serisi sürümlerin ücretsiz kalma garantisini hiçbir şekilde etkilemez.
+4. KISITLAMALAR VE KAPALI KAYNAK POLİTİKASI
+Yazılım kapalı kaynak olarak sunulmaktadır. Aşağıdaki eylemler kesinlikle yasaktır:
+
+KristalBASIC derleyicisinin veya KristalENGINE editörünün kaynak kodunu elde etmeye çalışmak, tersine mühendislik (reverse engineering) yapmak veya kaynak koda dönüştürmek (decompile).
+Yazılımın çalıştırılabilir (binary) dosyalarını, editörünü veya derleyicisini kendi adınıza satmak, ücret karşılığı dağıtmak veya Kristalsoft'un izni olmadan farklı bir isimle (rebranding) pazarlamak.
+
+5. SORUMLULUK REDDİ
+Bu yazılım "olduğu gibi" (as is) sağlanmaktadır. Kristalsoft, yazılımın hatasız çalışacağını veya belirli bir amaca uygunluğunu garanti etmez. Yazılımın kullanımı sırasında oluşabilecek veri kayıpları, ticari zararlar veya diğer sorunlardan Kristalsoft sorumlu tutulamaz.
+6. ÜÇÜNCÜ TARAF YAZILIMLAR VE AÇIK KAYNAK LİSANSLARI
+KristalBASIC ve KristalENGINE; Raylib, PySide, MinGW (GCC) gibi çeşitli açık kaynaklı üçüncü taraf yazılımları, kütüphaneleri ve araçları kullanır veya barındırır. Bu üçüncü taraf yazılımlar Kristalsoft'a ait değildir ve kendi orijinal açık kaynak lisanslarına (zlib, LGPL, GPL vb.) tabidir.
+İlgili yazılımların listesi, telif hakkı bildirimleri ve lisans metinleri, yazılımla birlikte sağlanan "THIRDPARTY.txt" dosyasında açıkça belirtilmiştir. Yazılımı kullanarak, bu üçüncü taraf bileşenlerin kendi lisans koşullarını da kabul etmiş sayılırsınız.
