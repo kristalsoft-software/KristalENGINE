@@ -108,4 +108,4 @@ KristalENGINE **ücretsizdir**. Projenizin ürettiği `.exe` sizindir — istedi
 
 ##  Lisans
 
-KristalENGINE ücretsiz olarak indirilebilir ve kullanılabilir. Tam koşullar için [LICENSE](./LICENSE) dosyasına bakın.
+KristalENGINE ücretsiz olarak indirilebilir ve kullanılabilir. Tam koşullar için [LICENSE](./LICENSE.txt) dosyasına bakın.
