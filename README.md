@@ -1,5 +1,5 @@
-# KristalENGINE 2  =[TR](./README_tr.md)=
-
+# KristalENGINE 2
+=[TR](./README_tr.md)=
 **KristalENGINE** is a standalone game engine powered by the **KristalBASIC** programming language — a modern, statically-typed language that combines the readability of C# and Swift with the raw performance of C. Write your game logic in KristalBASIC, and the engine compiles it into a native Windows executable (`.exe`) — no external runtime, no dependencies.
 
 ---
