@@ -1,0 +1,31 @@
+@OBJECT player.kbas
+@OBJECT world.kbas
+
+static class Game {
+    func int Start() {
+        Player p = new Player();
+        p.Init();
+        
+        while (WINDOW_SHOULD_CLOSE() == false) {
+            p.Update();
+            
+            
+            CLEAR_BACKGROUND(skyblue);
+            
+            # Camera setup for FPS. Target is where we are looking at.
+            BEGIN_3D(p.playerState.x, p.playerState.y + p.playerState.camHeight, p.playerState.z, p.playerState.x + p.playerState.dx, p.playerState.y + p.playerState.camHeight + p.playerState.dy, p.playerState.z + p.playerState.dz);
+            
+            World.Draw();
+            
+            END_3D();
+            
+            # Draw UI HUD
+            DRAW_RECTANGLE(SCREEN_WIDTH() / 2 - 2, SCREEN_HEIGHT() / 2 - 2, 4, 4, red); # Red Crosshair
+            DRAW_FPS(10, 10);
+            DRAW_TEXT("WASD ile hareket et, mouse ile bak ve yönel!", 10, 40, 20, black); # Black text
+            
+            
+        }
+        return 0;
+    }
+}
