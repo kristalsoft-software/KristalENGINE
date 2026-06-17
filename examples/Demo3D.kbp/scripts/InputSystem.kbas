@@ -1,0 +1,43 @@
+@OBJECT PlayerState.kbas
+
+static class InputSystem {
+    func int PlayerInput(PlayerState playerState) {
+        decimal dt = FRAME_TIME();
+
+        decimal mdx = MOUSE_DELTA_X() * -0.15;
+        decimal mdy = MOUSE_DELTA_Y() * 0.15;
+        
+        playerState.yaw = playerState.yaw + mdx;
+        playerState.pitch = playerState.pitch - mdy;
+        
+        if (playerState.pitch > 89.0) { playerState.pitch = 89.0; }
+        if (playerState.pitch < -89.0) { playerState.pitch = -89.0; }
+        
+        playerState.dx = SIN(RAD(playerState.yaw)) * COS(RAD(playerState.pitch));
+        playerState.dy = SIN(RAD(playerState.pitch));
+        playerState.dz = COS(RAD(playerState.yaw)) * COS(RAD(playerState.pitch));
+        
+        decimal rx = SIN(RAD(playerState.yaw - 90.0));
+        decimal rz = COS(RAD(playerState.yaw - 90.0));
+        
+        decimal moveSpeed = playerState.speed * dt;
+        
+        if (KEY_DOWN(87) == true) { 
+            playerState.x = playerState.x - (SIN(RAD(playerState.yaw)) * moveSpeed * -1);
+            playerState.z = playerState.z - (COS(RAD(playerState.yaw)) * moveSpeed * -1);
+        }
+        if (KEY_DOWN(83) == true) { 
+            playerState.x = playerState.x + (SIN(RAD(playerState.yaw)) * moveSpeed * -1);
+            playerState.z = playerState.z + (COS(RAD(playerState.yaw)) * moveSpeed * -1);
+        }
+        if (KEY_DOWN(65) == true) { 
+            playerState.x = playerState.x - (rx * moveSpeed);
+            playerState.z = playerState.z - (rz * moveSpeed);
+        }
+        if (KEY_DOWN(68) == true) { 
+            playerState.x = playerState.x + (rx * moveSpeed);
+            playerState.z = playerState.z + (rz * moveSpeed);
+        }
+    return 0;
+    }
+}
