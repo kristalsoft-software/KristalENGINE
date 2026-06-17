@@ -1,0 +1,13 @@
+struct PlayerState
+{
+    decimal x;
+    decimal y;
+    decimal z;
+    decimal dx;
+    decimal dy;
+    decimal dz;
+    decimal yaw;
+    decimal pitch;
+    decimal speed;
+    decimal camHeight;
+}
