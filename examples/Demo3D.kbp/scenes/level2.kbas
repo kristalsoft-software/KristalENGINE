@@ -1,0 +1,17 @@
+@PREIDENTIFIER SCENE
+
+static class Level2 {
+    func int Init() {
+        Player p2 = new Player();
+        p2.x = 356;
+        p2.y = 2.0;
+        p2.z = -5.0;
+        
+        Enemy e2 = new Enemy();
+        e2.x = 50.0;
+        e2.y = 0.0;
+        e2.z = 42.0;
+        
+        return 0;
+    }
+}
