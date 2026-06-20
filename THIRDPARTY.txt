@@ -1,143 +1,513 @@
 ========================================================================
+ KRISTALSOFT — THIRD-PARTY SOFTWARE NOTICES AND LICENSES
+ ÜÇÜNCÜ TARAF YAZILIM BİLDİRİMLERİ VE LİSANSLARI
+========================================================================
+Bu dosya, KristalBASIC ve KristalENGINE yazılımlarında kullanılan veya
+birlikte dağıtılan üçüncü taraf açık kaynaklı bileşenlerin tam listesini,
+telif hakkı bildirimlerini ve lisans koşullarını içermektedir.
 
-KRISTALSOFT - THIRD-PARTY SOFTWARE AND LICENSES
+This file contains the complete list of third-party open-source components
+used in or distributed with KristalBASIC and KristalENGINE, along with
+their copyright notices and license terms.
+
+Bu bileşenler Kristalsoft'a ait değildir.
+These components are not owned by Kristalsoft.
+========================================================================
+
+İÇİNDEKİLER / TABLE OF CONTENTS
+----------------------------------
+  1.  Python
+  2.  pip
+  3.  Raylib
+  4.  PySide6 & Shiboken6 (Qt for Python)
+  5.  MinGW-w64 & GCC (GNU Compiler Collection)
+  6.  OpenSSL
+  7.  zlib
+  8.  GLFW
+  9.  GNU MP (GMP)
+ 10.  GNU libiconv
+ 11.  GNU gettext (libintl)
+ 12.  ISL (Integer Set Library)
+ 13.  GNU MPC
+ 14.  GNU MPFR
+ 15.  GNU libstdc++ Runtime
+ 16.  winpthreads (MinGW-w64)
+ 17.  Zstandard (libzstd)
+ 18.  Microsoft Visual C++ Runtime
 
 ========================================================================
-Bu yazılım (KristalBASIC ve KristalENGINE), aşağıda listelenen açık kaynaklı
-
-üçüncü taraf yazılımları, kütüphaneleri ve araçları içermektedir veya kullanmaktadır.
-
-Bu bileşenler Kristalsoft'a ait değildir ve kendi orijinal lisanslarına tabidir.
-This software (KristalBASIC and KristalENGINE) includes or uses the following
-
-open-source third-party software, libraries, and tools. These components are
-
-not owned by Kristalsoft and are subject to their respective original licenses.
-========================================================================
-
 1. PYTHON
+========================================================================
+Bileşen      : Python Runtime
+Dosyalar     : python3.dll, python312.dll, base_library.zip,
+               unicodedata.pyd, select.pyd, _bz2.pyd, _decimal.pyd,
+               _hashlib.pyd, _lzma.pyd, _socket.pyd
+Lisans       : Python Software Foundation License (PSF) v2
+Web          : https://www.python.org
+
+Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved.
+
+This software is made available under the PSF License Agreement which
+permits use, copy, modify and redistribute subject to conditions including
+that the PSF copyright notice is retained.
+
+Full license text: https://docs.python.org/3/license.html
 
 ========================================================================
-KristalENGINE utilizes the Python programming language.
-
-Copyright (c) 2001-2023 Python Software Foundation; All Rights Reserved.
-Python is distributed under the Python Software Foundation (PSF) License Agreement.
-
-A copy of the PSF License can be found at:
-
-https://docs.python.org/3/license.html
-========================================================================
-
 2. PIP
+========================================================================
+Bileşen      : pip (Python package installer)
+Lisans       : MIT License
+Web          : https://pip.pypa.io
+
+Copyright (c) 2008-present The pip developers
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ========================================================================
-Copyright (c) 2008-present The pip developers (see AUTHORS.txt file)
-Permission is hereby granted, free of charge, to any person obtaining
-
-a copy of this software and associated documentation files (the
-
-"Software"), to deal in the Software without restriction, including
-
-without limitation the rights to use, copy, modify, merge, publish,
-
-distribute, sublicense, and/or sell copies of the Software, and to
-
-permit persons to whom the Software is furnished to do so, subject to
-
-the following conditions:
-The above copyright notice and this permission notice shall be
-
-included in all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-========================================================================
-
 3. RAYLIB
-
 ========================================================================
+Bileşen      : raylib (game programming library)
+Lisans       : zlib License
+Web          : https://www.raylib.com
+
 Copyright (c) 2013-2026 Ramon Santamaria (@raysan5)
-This software is provided "as-is", without any express or implied warranty.
 
-In no event will the authors be held liable for any damages arising from
+This software is provided "as-is", without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
 
-the use of this software.
 Permission is granted to anyone to use this software for any purpose,
-
 including commercial applications, and to alter it and redistribute it
-
 freely, subject to the following restrictions:
 
-The origin of this software must not be misrepresented; you must not claim
-
-that you wrote the original software. If you use this software in a product,
-
-an acknowledgment in the product documentation would be appreciated but is
-
-not required.
-Altered source versions must be plainly marked as such, and must not be
-
-misrepresented as being the original software.
-This notice may not be removed or altered from any source distribution.
+  1. The origin of this software must not be misrepresented; you must
+     not claim that you wrote the original software. If you use this
+     software in a product, an acknowledgment in the product
+     documentation would be appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must
+     not be misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source
+     distribution.
 
 ========================================================================
-
 4. PYSIDE6 & SHIBOKEN6 (Qt for Python)
-
 ========================================================================
+Bileşen      : PySide6, Shiboken6
+Dosyalar     : PySide6\* (dizin), shiboken6\* (dizin)
+Lisans       : GNU Lesser General Public License v3 (LGPLv3)
+Yayıncı      : The Qt Company Ltd.
+Web          : https://www.qt.io/qt-for-python
+
 Copyright (C) The Qt Company Ltd.
-PySide6 and Shiboken6 are distributed under the GNU Lesser General Public
 
-License (LGPL) version 3. KristalENGINE dynamically links to these libraries
+PySide6 and Shiboken6 are distributed under the GNU Lesser General
+Public License (LGPL) version 3.
 
-as permitted by the LGPLv3.
-You may obtain a copy of the LGPLv3 license at:
+KristalENGINE links to PySide6 and Shiboken6 dynamically (as separate
+DLL files). This dynamic linking is explicitly permitted by LGPLv3
+without imposing LGPL obligations on KristalENGINE itself.
 
+--- KULLANICI HAKLARI (LGPLv3 Gereği) / USER RIGHTS (Required by LGPLv3) ---
+
+LGPLv3 uyarınca, son kullanıcılar aşağıdaki haklara sahiptir:
+As required by LGPLv3, end users have the following rights:
+
+  • PySide6 ve Shiboken6 kütüphanelerinin kaynak koduna erişim hakkı.
+    Access to the source code of PySide6 and Shiboken6.
+
+    Kaynak kodu / Source code:
+    https://code.qt.io/cgit/pyside/pyside-setup.git/
+
+  • Bu kütüphanelerin değiştirilmiş sürümleriyle yeniden derleme
+    (relinking) yapma hakkı.
+    The right to relink against modified versions of these libraries.
+
+    Kütüphanelerin yeniden bağlanması için gereken nesne dosyalarını veya
+    dinamik bağlama talimatlarını edinmek istiyorsanız lütfen bizimle
+    iletişime geçin: https://www.kristalsoft.com.tr
+    To obtain object files or dynamic-link instructions needed for
+    relinking, please contact us at: https://www.kristalsoft.com.tr
+
+LGPLv3 lisans metni / Full LGPLv3 license text:
 https://www.gnu.org/licenses/lgpl-3.0.html
-The source code for PySide6 and Shiboken6 can be downloaded from the
 
-official Qt repositories:
-
-https://code.qt.io/cgit/pyside/pyside-setup.git/
 ========================================================================
-
 5. MINGW-W64 & GCC (GNU Compiler Collection)
+========================================================================
+Bileşen      : MinGW-w64 toolchain, GCC
+Dosyalar     : compiler\* (dizin / directory)
+Lisans       : GNU General Public License v3 (GPLv3) +
+               GCC Runtime Library Exception v3.1
+Web          : https://www.mingw-w64.org | https://gcc.gnu.org
+
+Copyright (C) Free Software Foundation, Inc.
+
+KristalBASIC uses the MinGW-w64 toolchain and the GNU Compiler
+Collection (GCC) to compile user-written scripts into executable
+binaries.
+
+GCC RUNTIME LIBRARY EXCEPTION (ÖNEMLİ / IMPORTANT):
+The GCC Runtime Library Exception v3.1 explicitly states that the
+GPLv3 license does NOT propagate to the output (compiled binaries)
+of the compiler. Therefore:
+
+  • User-compiled games and programs are NOT subject to GPLv3.
+  • Users retain full ownership of their compiled binaries.
+  • Users may distribute their binaries under any license, including
+    closed-source commercial licenses.
+
+MinGW-w64 runtime headers and libraries are distributed under a mix
+of Public Domain, Zope Public License (ZPL 2.1), and MIT License.
+
+Full license references:
+  GPLv3            : https://www.gnu.org/licenses/gpl-3.0.html
+  Runtime Exception: https://www.gnu.org/licenses/gcc-exception-3.1.html
 
 ========================================================================
-KristalBASIC utilizes the MinGW-w64 toolchain and the GNU Compiler Collection
+6. OPENSSL
+========================================================================
+Bileşen      : OpenSSL (cryptography and TLS library)
+Dosyalar     : libcrypto-3-x64.dll, libcrypto-3.dll,
+               libssl-3-x64.dll, libssl-3.dll
+Lisans       : Apache License 2.0
+Web          : https://www.openssl.org
 
-(GCC) to compile user scripts into executable binaries.
+Copyright (c) 1998-2024 The OpenSSL Project Authors.
+Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson.
+All Rights Reserved.
 
-GCC (GNU Compiler Collection) is licensed under the GNU General Public
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at:
 
-License version 3 (GPLv3).
-GCC RUNTIME LIBRARY EXCEPTION: The executables generated by the users
+    https://www.apache.org/licenses/LICENSE-2.0
 
-using this toolchain are subject to the GCC Runtime Library Exception
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied. See the License for the specific language governing
+permissions and limitations under the License.
 
-version 3.1. This means the GPLv3 license of the compiler DOES NOT apply
+========================================================================
+7. ZLIB
+========================================================================
+Bileşen      : zlib (compression library)
+Dosyalar     : zlib1.dll
+Lisans       : zlib License
+Web          : https://www.zlib.net
 
-to the compiled games/software. Users retain full ownership and may
+Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
 
-distribute their generated binaries under any license of their choice,
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
 
-including closed-source commercial licenses.
-MinGW-w64 runtime environment headers and libraries are distributed under
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
 
-a mix of Public Domain, Zope Public License, and MIT License.
+  1. The origin of this software must not be misrepresented; you must
+     not claim that you wrote the original software. If you use this
+     software in a product, an acknowledgment in the product
+     documentation would be appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must
+     not be misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source
+     distribution.
 
-You may obtain a copy of the GPLv3 and the GCC Runtime Library Exception at:
+========================================================================
+8. GLFW
+========================================================================
+Bileşen      : GLFW (multi-platform library for OpenGL)
+Dosyalar     : glfw3.dll
+Lisans       : zlib/libpng License
+Web          : https://www.glfw.org
 
-https://www.gnu.org/licenses/gpl-3.0.html
+Copyright (c) 2002-2006 Marcus Geelnard
+Copyright (c) 2006-2019 Camilla Löwy
 
-https://www.gnu.org/licenses/gcc-exception-3.1.html
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must
+     not claim that you wrote the original software. If you use this
+     software in a product, an acknowledgment in the product
+     documentation would be appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must
+     not be misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source
+     distribution.
+
+========================================================================
+9. GNU MP (GMP — GNU Multiple Precision Arithmetic Library)
+========================================================================
+Bileşen      : GNU MP
+Dosyalar     : libgmp-10.dll
+Lisans       : GNU Lesser General Public License v3 (LGPLv3)
+Web          : https://gmplib.org
+
+Copyright (C) 1991-2024 Free Software Foundation, Inc.
+
+GNU MP is free software; it is distributed under the LGPLv3 (or later).
+KristalENGINE links to this library dynamically, as permitted by LGPLv3.
+
+Users have the right to obtain the source code and relink against
+modified versions of this library.
+
+Source code: https://gmplib.org/download/gmp/
+Full license: https://www.gnu.org/licenses/lgpl-3.0.html
+
+========================================================================
+10. GNU LIBICONV
+========================================================================
+Bileşen      : GNU libiconv (character set conversion)
+Dosyalar     : libiconv-2.dll
+Lisans       : GNU Lesser General Public License v2.1 (LGPLv2.1)
+Web          : https://www.gnu.org/software/libiconv/
+
+Copyright (C) 2000-2024 Bruno Haible
+
+KristalENGINE links to this library dynamically, as permitted by LGPLv2.1.
+
+Users have the right to obtain the source code and relink against
+modified versions of this library.
+
+Source code: https://ftp.gnu.org/pub/gnu/libiconv/
+Full license: https://www.gnu.org/licenses/lgpl-2.1.html
+
+========================================================================
+11. GNU GETTEXT (libintl)
+========================================================================
+Bileşen      : GNU gettext runtime (internationalization)
+Dosyalar     : libintl-8.dll
+Lisans       : GNU Lesser General Public License v2.1 (LGPLv2.1)
+Web          : https://www.gnu.org/software/gettext/
+
+Copyright (C) 1995-2024 Free Software Foundation, Inc.
+
+KristalENGINE links to this library dynamically, as permitted by LGPLv2.1.
+
+Users have the right to obtain the source code and relink against
+modified versions of this library.
+
+Source code: https://ftp.gnu.org/pub/gnu/gettext/
+Full license: https://www.gnu.org/licenses/lgpl-2.1.html
+
+========================================================================
+12. ISL (Integer Set Library)
+========================================================================
+Bileşen      : ISL — Integer Set Library
+Dosyalar     : libisl-23.dll
+Lisans       : MIT License
+Web          : https://libisl.sourceforge.io
+
+Copyright (C) 2011-2024 Sven Verdoolaege
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+========================================================================
+13. GNU MPC
+========================================================================
+Bileşen      : GNU MPC (multiple precision complex arithmetic)
+Dosyalar     : libmpc-3.dll
+Lisans       : GNU Lesser General Public License v3 (LGPLv3)
+Web          : https://www.multiprecision.org/mpc/
+
+Copyright (C) 2002-2024 Free Software Foundation, Inc.
+
+KristalENGINE links to this library dynamically, as permitted by LGPLv3.
+
+Users have the right to obtain the source code and relink against
+modified versions of this library.
+
+Source code: https://ftp.gnu.org/gnu/mpc/
+Full license: https://www.gnu.org/licenses/lgpl-3.0.html
+
+========================================================================
+14. GNU MPFR
+========================================================================
+Bileşen      : GNU MPFR (multiple-precision floating-point library)
+Dosyalar     : libmpfr-6.dll
+Lisans       : GNU Lesser General Public License v3 (LGPLv3)
+Web          : https://www.mpfr.org
+
+Copyright (C) 1999-2024 Free Software Foundation, Inc.
+Contributed by the AriC and Caramba projects, INRIA.
+
+KristalENGINE links to this library dynamically, as permitted by LGPLv3.
+
+Users have the right to obtain the source code and relink against
+modified versions of this library.
+
+Source code: https://www.mpfr.org/mpfr-current/
+Full license: https://www.gnu.org/licenses/lgpl-3.0.html
+
+========================================================================
+15. GNU LIBSTDC++ RUNTIME
+========================================================================
+Bileşen      : GCC C++ Standard Library Runtime
+Dosyalar     : libstdc++-6.dll, libgcc_s_seh-1.dll
+Lisans       : GNU General Public License v3 + GCC Runtime Library
+               Exception v3.1
+Web          : https://gcc.gnu.org/onlinedocs/libstdc++/
+
+Copyright (C) Free Software Foundation, Inc.
+
+The GCC Runtime Library Exception (v3.1) explicitly permits these
+runtime libraries to be used and redistributed alongside non-GPL
+programs without imposing GPL obligations on those programs.
+
+Full license: https://www.gnu.org/licenses/gpl-3.0.html
+Runtime Exception: https://www.gnu.org/licenses/gcc-exception-3.1.html
+
+========================================================================
+16. WINPTHREADS (MinGW-w64)
+========================================================================
+Bileşen      : winpthreads (POSIX threads for Windows)
+Dosyalar     : libwinpthread-1.dll
+Lisans       : MIT License / BSD-like
+Web          : https://www.mingw-w64.org
+
+Copyright (c) 2011-2016 MinGW-w64 project
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+========================================================================
+17. ZSTANDARD (libzstd)
+========================================================================
+Bileşen      : Zstandard real-time compression algorithm
+Dosyalar     : libzstd.dll
+Lisans       : BSD 3-Clause License
+Web          : https://facebook.github.io/zstd/
+
+Copyright (c) Meta Platforms, Inc. and affiliates.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+  * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+  * Neither the name Meta nor the names of its contributors may be used
+    to endorse or promote products derived from this software without
+    specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+========================================================================
+18. MICROSOFT VISUAL C++ RUNTIME
+========================================================================
+Bileşen      : Microsoft Visual C++ Runtime Libraries
+Dosyalar     : VCRUNTIME140.dll, VCRUNTIME140_1.dll
+Yayıncı      : Microsoft Corporation
+Web          : https://support.microsoft.com/en-us/help/2977003
+
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+These libraries are components of the Microsoft Visual C++ Redistributable
+package and are redistributed under the terms of the Microsoft Software
+License for Visual Studio. Redistribution of these files is permitted
+provided that:
+
+  1. They are distributed as part of an application installation package.
+  2. They are not modified or reverse engineered.
+  3. They are accompanied by a valid license for the parent application.
+
+For full redistribution terms, see:
+https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files
+
+========================================================================
+LGPL UYUMU HAKKINDA NOT / NOTE ON LGPL COMPLIANCE
+========================================================================
+Bu yazılım, LGPL lisansına tabi çeşitli kütüphaneleri (PySide6, GMP,
+libiconv, libintl, MPC, MPFR) dinamik bağlama (DLL) yöntemiyle kullanır.
+
+This software uses several LGPL-licensed libraries (PySide6, GMP,
+libiconv, libintl, MPC, MPFR) via dynamic linking (DLLs).
+
+LGPLv3 gereği, kullanıcılar:
+As required by LGPLv3, users have the right to:
+
+  • Bu kütüphanelerin kaynak koduna erişme hakkına sahiptir.
+    Access the source code of these libraries.
+
+  • Kütüphanelerin değiştirilmiş sürümleriyle uygulamayı yeniden
+    derleme hakkına sahiptir.
+    Relink the application against modified versions of these libraries.
+
+Kaynak kodları ve yeniden derleme talepleriniz için lütfen iletişime
+geçin / For source code and relinking requests, please contact:
+  https://www.kristalsoft.com.tr
+
+========================================================================
+© 2024-2026 Kristalsoft. Üçüncü taraf bileşenler kendi orijinal
+lisans sahiplerine aittir.
+Third-party components are owned by their respective rights holders.
+========================================================================
