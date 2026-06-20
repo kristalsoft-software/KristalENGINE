@@ -1,0 +1,67 @@
+
+
+
+static class E1 { decimal x; decimal y; decimal z; bool active; }
+static class E2 { decimal x; decimal y; decimal z; bool active; }
+static class E3 { decimal x; decimal y; decimal z; bool active; }
+static class E4 { decimal x; decimal y; decimal z; bool active; }
+static class E5 { decimal x; decimal y; decimal z; bool active; }
+
+static class ScoreState { int score; }
+
+static class EnemySystem
+{
+    func void spawnE1() { E1.x = 20.0; E1.y = 1.0; E1.z = 20.0; E1.active = true; }
+    func void spawnE2() { E2.x = -20.0; E2.y = 1.0; E2.z = 20.0; E2.active = true; }
+    func void spawnE3() { E3.x = 20.0; E3.y = 1.0; E3.z = -20.0; E3.active = true; }
+    func void spawnE4() { E4.x = -20.0; E4.y = 1.0; E4.z = -20.0; E4.active = true; }
+    func void spawnE5() { E5.x = 0.0; E5.y = 1.0; E5.z = 25.0; E5.active = true; }
+
+    func void init() {
+        ScoreState.score = 0
+        EnemySystem.spawnE1()
+        EnemySystem.spawnE2()
+        EnemySystem.spawnE3()
+        EnemySystem.spawnE4()
+        EnemySystem.spawnE5()
+    }
+
+    func void update() {
+        decimal dt = FRAME_TIME()
+        decimal speed = 3.0
+        
+        if (E1.active) {
+            if (E1.x < PlayerState.x) { E1.x = E1.x + (speed * dt) } else { E1.x = E1.x - (speed * dt) }
+            if (E1.z < PlayerState.z) { E1.z = E1.z + (speed * dt) } else { E1.z = E1.z - (speed * dt) }
+        } else { EnemySystem.spawnE1() }
+
+        if (E2.active) {
+            if (E2.x < PlayerState.x) { E2.x = E2.x + (speed * dt) } else { E2.x = E2.x - (speed * dt) }
+            if (E2.z < PlayerState.z) { E2.z = E2.z + (speed * dt) } else { E2.z = E2.z - (speed * dt) }
+        } else { EnemySystem.spawnE2() }
+
+        if (E3.active) {
+            if (E3.x < PlayerState.x) { E3.x = E3.x + (speed * dt) } else { E3.x = E3.x - (speed * dt) }
+            if (E3.z < PlayerState.z) { E3.z = E3.z + (speed * dt) } else { E3.z = E3.z - (speed * dt) }
+        } else { EnemySystem.spawnE3() }
+
+        if (E4.active) {
+            if (E4.x < PlayerState.x) { E4.x = E4.x + (speed * dt) } else { E4.x = E4.x - (speed * dt) }
+            if (E4.z < PlayerState.z) { E4.z = E4.z + (speed * dt) } else { E4.z = E4.z - (speed * dt) }
+        } else { EnemySystem.spawnE4() }
+
+        if (E5.active) {
+            if (E5.x < PlayerState.x) { E5.x = E5.x + (speed * dt) } else { E5.x = E5.x - (speed * dt) }
+            if (E5.z < PlayerState.z) { E5.z = E5.z + (speed * dt) } else { E5.z = E5.z - (speed * dt) }
+        } else { EnemySystem.spawnE5() }
+    }
+
+    func void draw() {
+        int color = RED()
+        if (E1.active) { DRAW_CUBE(E1.x, E1.y, E1.z, 2.0, 2.0, 2.0, color); DRAW_CUBE_WIRES(E1.x, E1.y, E1.z, 2.0, 2.0, 2.0, BLACK()) }
+        if (E2.active) { DRAW_CUBE(E2.x, E2.y, E2.z, 2.0, 2.0, 2.0, color); DRAW_CUBE_WIRES(E2.x, E2.y, E2.z, 2.0, 2.0, 2.0, BLACK()) }
+        if (E3.active) { DRAW_CUBE(E3.x, E3.y, E3.z, 2.0, 2.0, 2.0, color); DRAW_CUBE_WIRES(E3.x, E3.y, E3.z, 2.0, 2.0, 2.0, BLACK()) }
+        if (E4.active) { DRAW_CUBE(E4.x, E4.y, E4.z, 2.0, 2.0, 2.0, color); DRAW_CUBE_WIRES(E4.x, E4.y, E4.z, 2.0, 2.0, 2.0, BLACK()) }
+        if (E5.active) { DRAW_CUBE(E5.x, E5.y, E5.z, 2.0, 2.0, 2.0, color); DRAW_CUBE_WIRES(E5.x, E5.y, E5.z, 2.0, 2.0, 2.0, BLACK()) }
+    }
+}

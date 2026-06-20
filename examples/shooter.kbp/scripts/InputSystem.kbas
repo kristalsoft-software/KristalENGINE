@@ -1,0 +1,65 @@
+
+
+
+
+
+static class InputSystem
+{
+    func void playerInput()
+	{
+        decimal dt = FRAME_TIME()
+
+        decimal mdx = MOUSE_DELTA_X() * -0.15
+        decimal mdy = MOUSE_DELTA_Y() * 0.15
+        
+        PlayerState.yaw = PlayerState.yaw + mdx
+        PlayerState.pitch = PlayerState.pitch - mdy
+        
+        if (PlayerState.pitch > 89.0) { PlayerState.pitch = 89.0 }
+        if (PlayerState.pitch < -89.0) { PlayerState.pitch = -89.0 }
+        
+        PlayerState.dx = SIN(RAD(PlayerState.yaw)) * COS(RAD(PlayerState.pitch))
+        PlayerState.dy = SIN(RAD(PlayerState.pitch))
+        PlayerState.dz = COS(RAD(PlayerState.yaw)) * COS(RAD(PlayerState.pitch))
+        
+        decimal rx = SIN(RAD(PlayerState.yaw - 90.0))
+        decimal rz = COS(RAD(PlayerState.yaw - 90.0))
+        
+        decimal moveSpeed = PlayerState.speed * dt
+        
+        if (KEY_DOWN(KEY_W()) == true)
+		{ 
+            PlayerState.x = PlayerState.x - (SIN(RAD(PlayerState.yaw)) * moveSpeed * -1.0)
+            PlayerState.z = PlayerState.z - (COS(RAD(PlayerState.yaw)) * moveSpeed * -1.0)
+        }
+        if (KEY_DOWN(KEY_S()) == true)
+		{ 
+            PlayerState.x = PlayerState.x + (SIN(RAD(PlayerState.yaw)) * moveSpeed * -1.0)
+            PlayerState.z = PlayerState.z + (COS(RAD(PlayerState.yaw)) * moveSpeed * -1.0)
+        }
+        if (KEY_DOWN(KEY_A()) == true)
+		{ 
+            PlayerState.x = PlayerState.x - (rx * moveSpeed)
+            PlayerState.z = PlayerState.z - (rz * moveSpeed)
+        }
+        if (KEY_DOWN(KEY_D()) == true)
+		{ 
+            PlayerState.x = PlayerState.x + (rx * moveSpeed)
+            PlayerState.z = PlayerState.z + (rz * moveSpeed)
+        }
+
+        # ATEŞ ETME VE EKRAN TİTREME (SHAKE) EFEKTİ
+        if (MOUSE_PRESSED(0) == true)
+        {
+            WindowFX.Shake(15)
+            BulletSystem.shoot(
+                PlayerState.x, 
+                PlayerState.y + PlayerState.camHeight, 
+                PlayerState.z, 
+                PlayerState.dx, 
+                PlayerState.dy, 
+                PlayerState.dz
+            )
+        }
+    }
+}

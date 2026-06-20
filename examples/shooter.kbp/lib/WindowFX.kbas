@@ -1,0 +1,77 @@
+# ══════════════════════════════════════════════════════
+#  lib/WindowFX.kbas  —  Win32 Pencere Efektleri
+#  Bağımlılık: lib/win32/win32api.kbas
+#  C kodu yok; kbas_* fonksiyonlarını doğrudan çağırır.
+# ══════════════════════════════════════════════════════
+
+static class WindowFX {
+    # ──────────────────────────────────────────────────────
+    #  WindowFX.RemoveBorders()
+    #  Ön plan penceresinden başlık çubuğunu ve çerçeveleri kaldırır.
+    #  Ardından SetWindowPos ile değişikliği zorla uygular.
+    # ──────────────────────────────────────────────────────
+    func void RemoveBorders() {
+        int w        = WIN_FOREGROUND()
+        int curStyle = kbas_GetWindowLong(w, GWL_STYLE())
+
+        # Kaldırılacak stil bitleri
+        int removeMask = WS_CAPTION()    | WS_THICKFRAME()  |
+                        WS_MINIMIZEBOX() | WS_MAXIMIZEBOX() |
+                        WS_SYSMENU()
+
+        kbas_SetWindowLong(w, GWL_STYLE(), curStyle & ~removeMask)
+
+        # FRAMECHANGED → pencereyi yeniden hesapla, taşıma/boyutlandırma yapma
+        int swpFlags = SWP_NOMOVE() | SWP_NOSIZE() | SWP_NOZORDER() | SWP_FRAMECHANGED()
+        kbas_SetWindowPos(w, 0, 0, 0, 0, swpFlags)
+    }
+
+    # ──────────────────────────────────────────────────────
+    #  WindowFX.MakeLayered(r, g, b)
+    #  Verilen rengi saydam (renk anahtarı) yapar.
+    #  alpha=-1 ise yalnızca renk anahtarı kullanılır.
+    #  Raylib'in arka plan rengiyle (SKYBLUE 102,191,255)
+    #  eşleştirilince pencere "şeffaf" görünür.
+    # ──────────────────────────────────────────────────────
+    func bool MakeLayered(int r, int g, int b, int alpha) {
+        int w       = WIN_FOREGROUND()
+        int exStyle = kbas_GetWindowLong(w, GWL_EXSTYLE())
+
+        # WS_EX_LAYERED bitini ekle
+        kbas_SetWindowLong(w, GWL_EXSTYLE(), exStyle | WS_EX_LAYERED())
+
+        # Hangi flag'ler kullanılacak?
+        int flags = 0
+        if (r >= 0) { flags = flags | 0x00000001 }   # LWA_COLORKEY
+        if (alpha >= 0) { flags = flags | 0x00000002 } # LWA_ALPHA
+        if (alpha < 0)  { alpha = 255 }
+
+        return kbas_SetLayeredWindowAttributes(w, r, g, b, alpha, flags)
+    }
+
+    # ──────────────────────────────────────────────────────
+    #  WindowFX.ApplyDesktopMode(r, g, b)
+    #  Masaüstü modunu tek çağrıyla etkinleştirir:
+    #  kenarsız + belirtilen renk şeffaf.
+    # ──────────────────────────────────────────────────────
+    func void ApplyDesktopMode(int r, int g, int b) {
+        WindowFX.RemoveBorders()
+        WindowFX.MakeLayered(r, g, b, -1)  # -1 → yalnızca renk anahtarı
+    }
+
+    # ──────────────────────────────────────────────────────
+    #  WindowFX.Shake(intensity)
+    #  Pencereyi yatayda titretir (hasar/vurgu efekti için).
+    # ──────────────────────────────────────────────────────
+    func void Shake(int intensity) {
+        int w = WIN_FOREGROUND()
+        int x = WIN_X(w)
+        int y = WIN_Y(w)
+
+        kbas_SetWindowPos(w, x + intensity, y, 0, 0, SWP_NOSIZE() | SWP_NOZORDER())
+        WAIT(20)
+        kbas_SetWindowPos(w, x - intensity, y, 0, 0, SWP_NOSIZE() | SWP_NOZORDER())
+        WAIT(20)
+        kbas_SetWindowPos(w, x, y, 0, 0, SWP_NOSIZE() | SWP_NOZORDER())
+    }
+}

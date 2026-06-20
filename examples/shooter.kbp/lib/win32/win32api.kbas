@@ -1,0 +1,2348 @@
+@INDICATE "-luser32"
+@INDICATE "-lgdi32"
+@INDICATE "-lkernel32"
+@INDICATE "-lwinmm"
+@INDICATE "-ladvapi32"
+@INDICATE "-lshell32"
+@IMPORT "user32.dll"
+@IMPORT "gdi32.dll"
+@IMPORT "kernel32.dll"
+@IMPORT "winmm.dll"
+@IMPORT "advapi32.dll"
+@IMPORT "shell32.dll"
+
+external C """
+/* =================================================================
+   WIN32 API - KristalBASIC Tam Binding
+   Kütüphaneler: user32, gdi32, kernel32, winmm, advapi32, shell32
+   ================================================================= */
+
+#ifndef __cplusplus
+#define bool _Bool
+#define true 1
+#define false 0
+#endif
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+#include <mmsystem.h>
+#include <shellapi.h>
+#include <shlobj.h>
+#include <tlhelp32.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+/* ─────────────────────────────────────────────
+   İÇ HANDLE TABLOLARI
+   Tüm Win32 handle'ları güvenli int indekslere
+   dönüştürülür. 32/64-bit uyumlu.
+   ───────────────────────────────────────────── */
+#define KBAS_MAX_HANDLES  512
+#define KBAS_MAX_KEYS      64
+#define KBAS_MAX_DC        64
+#define KBAS_MAX_GDIOBJ   512
+#define KBAS_MAX_HWND      64
+#define KBAS_STRBUF_SIZE 8192
+
+static HANDLE  g_handles[KBAS_MAX_HANDLES] = {0};
+static HKEY    g_regkeys[KBAS_MAX_KEYS]    = {0};
+static HDC     g_dc     [KBAS_MAX_DC]      = {0};
+static HGDIOBJ g_gdiobj [KBAS_MAX_GDIOBJ] = {0};
+static HWND    g_hwnd   [KBAS_MAX_HWND]   = {0};
+static char    g_strbuf [KBAS_STRBUF_SIZE] = {0};
+
+static wchar_t* kbas__utf8_to_utf16(const char* utf8) {
+    if (!utf8) return NULL;
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
+    if (wlen == 0) return NULL;
+    wchar_t* wstr = (wchar_t*)malloc(wlen * sizeof(wchar_t));
+    MultiByteToWideChar(CP_UTF8, 0, utf8, -1, wstr, wlen);
+    return wstr;
+}
+
+static int kbas__alloc_handle(HANDLE h) {
+    if (!h || h == INVALID_HANDLE_VALUE) return -1;
+    for (int i = 1; i < KBAS_MAX_HANDLES; i++) {
+        if (!g_handles[i]) { g_handles[i] = h; return i; }
+    }
+    return -1;
+}
+static HANDLE kbas__get_handle(int idx) {
+    if (idx < 1 || idx >= KBAS_MAX_HANDLES) return NULL;
+    return g_handles[idx];
+}
+static int kbas__alloc_dc(HDC dc) {
+    if (!dc) return -1;
+    for (int i = 1; i < KBAS_MAX_DC; i++) {
+        if (!g_dc[i]) { g_dc[i] = dc; return i; }
+    }
+    return -1;
+}
+static HDC kbas__get_dc(int idx) {
+    if (idx < 1 || idx >= KBAS_MAX_DC) return NULL;
+    return g_dc[idx];
+}
+static int kbas__alloc_gdi(HGDIOBJ obj) {
+    if (!obj) return -1;
+    for (int i = 1; i < KBAS_MAX_GDIOBJ; i++) {
+        if (!g_gdiobj[i]) { g_gdiobj[i] = obj; return i; }
+    }
+    return -1;
+}
+static HGDIOBJ kbas__get_gdi(int idx) {
+    if (idx < 1 || idx >= KBAS_MAX_GDIOBJ) return NULL;
+    return g_gdiobj[idx];
+}
+static int kbas__alloc_hwnd(HWND wnd) {
+    if (!wnd) return -1;
+    for (int i = 1; i < KBAS_MAX_HWND; i++) {
+        if (!g_hwnd[i]) { g_hwnd[i] = wnd; return i; }
+    }
+    return -1;
+}
+static HWND kbas__get_hwnd(int idx) {
+    if (idx < 1 || idx >= KBAS_MAX_HWND) return NULL;
+    return g_hwnd[idx];
+}
+static int kbas__alloc_key(HKEY key) {
+    if (!key) return -1;
+    for (int i = 1; i < KBAS_MAX_KEYS; i++) {
+        if (!g_regkeys[i]) { g_regkeys[i] = key; return i; }
+    }
+    return -1;
+}
+static HKEY kbas__get_key(int idx) {
+    if (idx < 1 || idx >= KBAS_MAX_KEYS) return NULL;
+    return g_regkeys[idx];
+}
+
+/* ════════════════════════════════════════════════
+   1. PENCERE YÖNETİMİ  (user32)
+   ════════════════════════════════════════════════ */
+
+/* Ön plan penceresini döndürür (indeks) */
+int kbas_GetForegroundWindow() {
+    HWND w = GetForegroundWindow();
+    return kbas__alloc_hwnd(w);
+}
+
+/* Masaüstü penceresini döndürür (indeks) */
+int kbas_GetDesktopWindow() {
+    return kbas__alloc_hwnd(GetDesktopWindow());
+}
+
+/* Sınıf ve başlık adına göre pencere bul (indeks; -1 = bulunamadı) */
+int kbas_FindWindow(char* className, char* title) {
+    wchar_t* w_class = kbas__utf8_to_utf16(className);
+    wchar_t* w_title = kbas__utf8_to_utf16(title);
+    HWND w = FindWindowW(
+        w_class && wcslen(w_class) ? w_class : NULL,
+        w_title && wcslen(w_title) ? w_title : NULL);
+    if (w_class) free(w_class);
+    if (w_title) free(w_title);
+    return kbas__alloc_hwnd(w);
+}
+
+/* Alt pencere ara */
+int kbas_FindWindowEx(int parentIdx, int childAfterIdx, char* className, char* title) {
+    HWND parent     = kbas__get_hwnd(parentIdx);
+    HWND childAfter = kbas__get_hwnd(childAfterIdx);
+    wchar_t* w_class = kbas__utf8_to_utf16(className);
+    wchar_t* w_title = kbas__utf8_to_utf16(title);
+    HWND w = FindWindowExW(parent, childAfter,
+        w_class && wcslen(w_class) ? w_class : NULL,
+        w_title && wcslen(w_title) ? w_title : NULL);
+    if (w_class) free(w_class);
+    if (w_title) free(w_title);
+    return kbas__alloc_hwnd(w);
+}
+
+/* Pencere başlığını oku */
+char* kbas_GetWindowText(int hwndIdx) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    if (!w) { g_strbuf[0] = 0; return kbc_str_dup(g_strbuf); }
+    GetWindowTextA(w, g_strbuf, KBAS_STRBUF_SIZE);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Pencere başlığını değiştir */
+bool kbas_SetWindowText(int hwndIdx, char* text) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    if (!w) return false;
+    wchar_t* w_text = kbas__utf8_to_utf16(text);
+    bool ret = (bool)SetWindowTextW(w, w_text ? w_text : L"");
+    if (w_text) free(w_text);
+    return ret;
+}
+
+/* Ön plan penceresinin başlığını değiştir (raylib kolaylığı) */
+bool kbas_SetForegroundTitle(char* text) {
+    wchar_t* w_text = kbas__utf8_to_utf16(text);
+    bool ret = (bool)SetWindowTextW(GetForegroundWindow(), w_text ? w_text : L"");
+    if (w_text) free(w_text);
+    return ret;
+}
+
+/* ShowWindow */
+bool kbas_ShowWindow(int hwndIdx, int cmdShow) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (bool)ShowWindow(w, cmdShow) : false;
+}
+
+/* MoveWindow */
+bool kbas_MoveWindow(int hwndIdx, int x, int y, int w, int h, bool repaint) {
+    HWND wnd = kbas__get_hwnd(hwndIdx);
+    return wnd ? (bool)MoveWindow(wnd, x, y, w, h, repaint) : false;
+}
+
+/* SetWindowPos */
+bool kbas_SetWindowPos(int hwndIdx, int x, int y, int cx, int cy, int flags) {
+    HWND wnd = kbas__get_hwnd(hwndIdx);
+    return wnd ? (bool)SetWindowPos(wnd, NULL, x, y, cx, cy, (UINT)flags) : false;
+}
+
+/* GetWindowRect: sol/üst/sağ/alt ayrı fonksiyonlar */
+static RECT kbas__winrect(int hwndIdx) {
+    RECT r = {0};
+    HWND w = kbas__get_hwnd(hwndIdx);
+    if (w) GetWindowRect(w, &r);
+    return r;
+}
+int kbas_GetWindowLeft  (int idx) { return (int)kbas__winrect(idx).left;   }
+int kbas_GetWindowTop   (int idx) { return (int)kbas__winrect(idx).top;    }
+int kbas_GetWindowRight (int idx) { return (int)kbas__winrect(idx).right;  }
+int kbas_GetWindowBottom(int idx) { return (int)kbas__winrect(idx).bottom; }
+int kbas_GetWindowWidth (int idx) { RECT r = kbas__winrect(idx); return r.right  - r.left; }
+int kbas_GetWindowHeight(int idx) { RECT r = kbas__winrect(idx); return r.bottom - r.top;  }
+
+/* GetClientRect */
+static RECT kbas__clientrect(int hwndIdx) {
+    RECT r = {0};
+    HWND w = kbas__get_hwnd(hwndIdx);
+    if (w) GetClientRect(w, &r);
+    return r;
+}
+int kbas_GetClientWidth (int idx) { RECT r = kbas__clientrect(idx); return r.right  - r.left; }
+int kbas_GetClientHeight(int idx) { RECT r = kbas__clientrect(idx); return r.bottom - r.top;  }
+
+/* Pencere görünür mü? */
+bool kbas_IsWindowVisible(int hwndIdx) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (bool)IsWindowVisible(w) : false;
+}
+
+/* Pencere etkin mi? */
+bool kbas_IsWindowEnabled(int hwndIdx) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (bool)IsWindowEnabled(w) : false;
+}
+
+/* Pencereyi etkinleştir / devre dışı bırak */
+bool kbas_EnableWindow(int hwndIdx, bool enable) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (bool)EnableWindow(w, enable) : false;
+}
+
+/* Ön plana getir */
+bool kbas_SetForegroundWindow(int hwndIdx) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (bool)SetForegroundWindow(w) : false;
+}
+
+/* En üste getir */
+bool kbas_BringWindowToTop(int hwndIdx) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (bool)BringWindowToTop(w) : false;
+}
+
+/* Görev çubuğunda pencereyi flaşlat */
+bool kbas_FlashWindow(int hwndIdx, bool invert) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (bool)FlashWindow(w, invert) : false;
+}
+
+/* Ebeveyn penceresi indeksi */
+int kbas_GetParent(int hwndIdx) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? kbas__alloc_hwnd(GetParent(w)) : -1;
+}
+
+/* GetWindowLongPtr (stil, kimlik vb.) */
+int kbas_GetWindowLong(int hwndIdx, int index) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (int)GetWindowLongPtrA(w, index) : 0;
+}
+
+/* SetWindowLongPtr */
+int kbas_SetWindowLong(int hwndIdx, int index, int value) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (int)SetWindowLongPtrA(w, index, (LONG_PTR)value) : 0;
+}
+
+/* Pencere işleminin PID'ini al */
+int kbas_GetWindowProcessId(int hwndIdx) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    if (!w) return 0;
+    DWORD pid = 0;
+    GetWindowThreadProcessId(w, &pid);
+    return (int)pid;
+}
+
+/* Noktadaki pencere */
+int kbas_WindowFromPoint(int x, int y) {
+    POINT p = {x, y};
+    return kbas__alloc_hwnd(WindowFromPoint(p));
+}
+
+/* Geçersiz kıl (yeniden çizim tetikle) */
+bool kbas_InvalidateWindow(int hwndIdx) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    return w ? (bool)InvalidateRect(w, NULL, TRUE) : false;
+}
+
+/* Kayıtlı hwnd indeksini serbest bırak */
+void kbas_FreeHwnd(int hwndIdx) {
+    if (hwndIdx >= 1 && hwndIdx < KBAS_MAX_HWND)
+        g_hwnd[hwndIdx] = NULL;
+}
+
+/* Katmanlı pencere: renk anahtarı ve/veya alfa şeffaflık */
+bool kbas_SetLayeredWindowAttributes(int hwndIdx, int r, int g, int b, int alpha, int flags) {
+    HWND w = kbas__get_hwnd(hwndIdx);
+    if (!w) return false;
+    return (bool)SetLayeredWindowAttributes(
+        w, RGB((BYTE)r, (BYTE)g, (BYTE)b), (BYTE)alpha, (DWORD)flags
+    );
+}
+
+/* ════════════════════════════════════════════════
+   2. MESAJ & DİYALOG  (user32)
+   ════════════════════════════════════════════════ */
+
+int  kbas_MessageBox(char* text, char* caption, int type) {
+    wchar_t* w_text = kbas__utf8_to_utf16(text);
+    wchar_t* w_caption = kbas__utf8_to_utf16(caption);
+    int ret = MessageBoxW(NULL, w_text ? w_text : L"", w_caption ? w_caption : L"", (UINT)type);
+    if (w_text) free(w_text);
+    if (w_caption) free(w_caption);
+    return ret;
+}
+void kbas_MessageBeep(int type) {
+    MessageBeep((UINT)type);
+}
+bool kbas_Beep(int freq, int durationMs) {
+    return (bool)Beep((DWORD)freq, (DWORD)durationMs);
+}
+
+/* Basit girdi kutusu - global strbuf'a yazar, NULL = iptal */
+char* kbas_InputBox(char* title, char* prompt, char* defaultVal) {
+    /* Not: Win32'de native InputBox yok; bu versiyon sabit bir dialog kurar */
+    /* Daha gelişmiş bir sürüm için özel pencere oluşturmak gerekir */
+    strncpy(g_strbuf, defaultVal ? defaultVal : "", KBAS_STRBUF_SIZE - 1);
+    /* Şimdilik default değeri döndürür - MessageBox ile onay al */
+    wchar_t* w_prompt = kbas__utf8_to_utf16(prompt);
+    wchar_t* w_title = kbas__utf8_to_utf16(title);
+    int r = MessageBoxW(NULL, w_prompt ? w_prompt : L"", w_title ? w_title : L"", MB_OKCANCEL | MB_ICONQUESTION);
+    if (w_prompt) free(w_prompt);
+    if (w_title) free(w_title);
+    return (r == IDOK) ? g_strbuf : NULL;
+}
+
+/* PostQuitMessage */
+void kbas_PostQuitMessage(int exitCode) {
+    PostQuitMessage(exitCode);
+}
+
+/* ════════════════════════════════════════════════
+   3. GDI ÇİZİM  (gdi32 + user32)
+   ════════════════════════════════════════════════ */
+
+/* Pencere DC al */
+int kbas_GetDC(int hwndIdx) {
+    HWND w = hwndIdx == 0 ? GetForegroundWindow() : kbas__get_hwnd(hwndIdx);
+    return kbas__alloc_dc(GetDC(w));
+}
+
+/* DC serbest bırak */
+bool kbas_ReleaseDC(int hwndIdx, int dcIdx) {
+    HWND w  = hwndIdx == 0 ? GetForegroundWindow() : kbas__get_hwnd(hwndIdx);
+    HDC  dc = kbas__get_dc(dcIdx);
+    if (!dc) return false;
+    bool ok = (bool)ReleaseDC(w, dc);
+    g_dc[dcIdx] = NULL;
+    return ok;
+}
+
+/* Uyumlu DC oluştur (offscreen render için) */
+int kbas_CreateCompatibleDC(int dcIdx) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return kbas__alloc_dc(CreateCompatibleDC(dc));
+}
+
+/* DC sil */
+bool kbas_DeleteDC(int dcIdx) {
+    HDC dc = kbas__get_dc(dcIdx);
+    if (!dc) return false;
+    bool ok = (bool)DeleteDC(dc);
+    g_dc[dcIdx] = NULL;
+    return ok;
+}
+
+/* Uyumlu bitmap oluştur */
+int kbas_CreateCompatibleBitmap(int dcIdx, int w, int h) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? kbas__alloc_gdi((HGDIOBJ)CreateCompatibleBitmap(dc, w, h)) : -1;
+}
+
+/* GDI nesnesini DC'ye seç; önceki nesnenin indeksini döndürür */
+int kbas_SelectObject(int dcIdx, int objIdx) {
+    HDC     dc  = kbas__get_dc(dcIdx);
+    HGDIOBJ obj = kbas__get_gdi(objIdx);
+    if (!dc || !obj) return -1;
+    return kbas__alloc_gdi(SelectObject(dc, obj));
+}
+
+/* GDI nesnesini sil */
+bool kbas_DeleteObject(int objIdx) {
+    HGDIOBJ obj = kbas__get_gdi(objIdx);
+    if (!obj) return false;
+    bool ok = (bool)DeleteObject(obj);
+    g_gdiobj[objIdx] = NULL;
+    return ok;
+}
+
+/* BitBlt (kaynak DC → hedef DC kopyala) */
+bool kbas_BitBlt(int dstDcIdx, int dstX, int dstY, int w, int h,
+                 int srcDcIdx, int srcX, int srcY, int rop) {
+    HDC dst = kbas__get_dc(dstDcIdx);
+    HDC src = kbas__get_dc(srcDcIdx);
+    return (dst && src) ? (bool)BitBlt(dst, dstX, dstY, w, h, src, srcX, srcY, (DWORD)rop) : false;
+}
+
+/* StretchBlt */
+bool kbas_StretchBlt(int dstDcIdx, int dstX, int dstY, int dstW, int dstH,
+                     int srcDcIdx, int srcX, int srcY, int srcW, int srcH, int rop) {
+    HDC dst = kbas__get_dc(dstDcIdx);
+    HDC src = kbas__get_dc(srcDcIdx);
+    return (dst && src) ? (bool)StretchBlt(dst, dstX, dstY, dstW, dstH,
+                                            src, srcX, srcY, srcW, srcH, (DWORD)rop) : false;
+}
+
+/* Fırça oluştur (RGB renk) */
+int kbas_CreateSolidBrush(int r, int g, int b) {
+    return kbas__alloc_gdi((HGDIOBJ)CreateSolidBrush(RGB(r, g, b)));
+}
+
+/* Taralı fırça */
+int kbas_CreateHatchBrush(int style, int r, int g, int b) {
+    return kbas__alloc_gdi((HGDIOBJ)CreateHatchBrush(style, RGB(r, g, b)));
+}
+
+/* Kalem oluştur */
+int kbas_CreatePen(int style, int width, int r, int g, int b) {
+    return kbas__alloc_gdi((HGDIOBJ)CreatePen(style, width, RGB(r, g, b)));
+}
+
+/* Font oluştur */
+int kbas_CreateFont(int height, int width, int weight, bool italic,
+                    bool underline, bool strikeout, char* faceName) {
+    HFONT f = CreateFontA(height, width, 0, 0, weight,
+                          italic, underline, strikeout,
+                          DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                          CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+                          DEFAULT_PITCH | FF_DONTCARE, faceName);
+    return kbas__alloc_gdi((HGDIOBJ)f);
+}
+
+/* Piksel yaz */
+int kbas_SetPixel(int dcIdx, int x, int y, int r, int g, int b) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (int)SetPixel(dc, x, y, RGB(r, g, b)) : -1;
+}
+
+/* Piksel oku - R,G,B ayrı fonksiyonlar */
+static COLORREF kbas__getpixel(int dcIdx, int x, int y) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? GetPixel(dc, x, y) : CLR_INVALID;
+}
+int kbas_GetPixelR(int dcIdx, int x, int y) { return (int)GetRValue(kbas__getpixel(dcIdx,x,y)); }
+int kbas_GetPixelG(int dcIdx, int x, int y) { return (int)GetGValue(kbas__getpixel(dcIdx,x,y)); }
+int kbas_GetPixelB(int dcIdx, int x, int y) { return (int)GetBValue(kbas__getpixel(dcIdx,x,y)); }
+
+/* MoveTo & LineTo */
+bool kbas_MoveTo(int dcIdx, int x, int y) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (bool)MoveToEx(dc, x, y, NULL) : false;
+}
+bool kbas_LineTo(int dcIdx, int x, int y) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (bool)LineTo(dc, x, y) : false;
+}
+
+/* Dikdörtgen */
+bool kbas_Rectangle(int dcIdx, int l, int t, int r, int b) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (bool)Rectangle(dc, l, t, r, b) : false;
+}
+
+/* Elips */
+bool kbas_Ellipse(int dcIdx, int l, int t, int r, int b) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (bool)Ellipse(dc, l, t, r, b) : false;
+}
+
+/* Yuvarlatılmış dikdörtgen */
+bool kbas_RoundRect(int dcIdx, int l, int t, int r, int b, int ellipseW, int ellipseH) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (bool)RoundRect(dc, l, t, r, b, ellipseW, ellipseH) : false;
+}
+
+/* Dikdörtgeni fırçayla doldur */
+bool kbas_FillRect(int dcIdx, int l, int t, int r, int b, int brushIdx) {
+    HDC    dc  = kbas__get_dc(dcIdx);
+    HBRUSH br  = (HBRUSH)kbas__get_gdi(brushIdx);
+    if (!dc || !br) return false;
+    RECT rc = {l, t, r, b};
+    return (bool)FillRect(dc, &rc, br);
+}
+
+/* Dikdörtgen çerçevesi çiz */
+bool kbas_FrameRect(int dcIdx, int l, int t, int r, int b, int brushIdx) {
+    HDC    dc = kbas__get_dc(dcIdx);
+    HBRUSH br = (HBRUSH)kbas__get_gdi(brushIdx);
+    if (!dc || !br) return false;
+    RECT rc = {l, t, r, b};
+    return (bool)FrameRect(dc, &rc, br);
+}
+
+/* Metin çiz */
+bool kbas_TextOut(int dcIdx, int x, int y, char* text) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (bool)TextOutA(dc, x, y, text, (int)strlen(text)) : false;
+}
+
+/* Metin rengi ayarla */
+int kbas_SetTextColor(int dcIdx, int r, int g, int b) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (int)SetTextColor(dc, RGB(r,g,b)) : -1;
+}
+
+/* Arka plan rengi ayarla */
+int kbas_SetBkColor(int dcIdx, int r, int g, int b) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (int)SetBkColor(dc, RGB(r,g,b)) : -1;
+}
+
+/* Arka plan modu (TRANSPARENT=1, OPAQUE=2) */
+int kbas_SetBkMode(int dcIdx, int mode) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? SetBkMode(dc, mode) : 0;
+}
+
+/* Metin boyutu ölç */
+int kbas_GetTextWidth(int dcIdx, char* text) {
+    HDC dc = kbas__get_dc(dcIdx);
+    if (!dc) return 0;
+    SIZE s;
+    GetTextExtentPoint32A(dc, text, (int)strlen(text), &s);
+    return (int)s.cx;
+}
+int kbas_GetTextHeight(int dcIdx, char* text) {
+    HDC dc = kbas__get_dc(dcIdx);
+    if (!dc) return 0;
+    SIZE s;
+    GetTextExtentPoint32A(dc, text, (int)strlen(text), &s);
+    return (int)s.cy;
+}
+
+/* PatBlt - fırçayla dikdörtgen doldur */
+bool kbas_PatBlt(int dcIdx, int x, int y, int w, int h, int rop) {
+    HDC dc = kbas__get_dc(dcIdx);
+    return dc ? (bool)PatBlt(dc, x, y, w, h, (DWORD)rop) : false;
+}
+
+/* Sistem metrik */
+int kbas_GetSystemMetrics(int index) {
+    return GetSystemMetrics(index);
+}
+
+/* ════════════════════════════════════════════════
+   4. KLAVYE & FARE GİRİŞİ  (user32)
+   ════════════════════════════════════════════════ */
+
+/* Ham tuş durumu (bit 15 = şu an basılı) */
+bool kbas_IsKeyPressed(int vKey) {
+    return (GetAsyncKeyState(vKey) & 0x8000) != 0;
+}
+
+/* Tuş serbest bırakıldı mı (son kontolden bu yana)? */
+bool kbas_WasKeyPressed(int vKey) {
+    return (GetAsyncKeyState(vKey) & 0x0001) != 0;
+}
+
+/* Mesaj kuyruğu tabanlı tuş durumu */
+bool kbas_GetKeyState(int vKey) {
+    return (GetKeyState(vKey) & 0x8000) != 0;
+}
+
+/* Fare konumu (ekran koordinatı) */
+int kbas_GetMouseX() {
+    POINT p; GetCursorPos(&p); return (int)p.x;
+}
+int kbas_GetMouseY() {
+    POINT p; GetCursorPos(&p); return (int)p.y;
+}
+
+/* İmleci konumlandır */
+bool kbas_SetMousePos(int x, int y) {
+    return (bool)SetCursorPos(x, y);
+}
+
+/* İmleç göster/gizle (-1 = hep gizle, >=0 = göster) */
+int kbas_ShowMouseCursor(bool show) {
+    return ShowCursor(show);
+}
+
+/* Fareyi bir dikdörtgenle kilitle */
+bool kbas_ClipMouse(int l, int t, int r, int b) {
+    RECT rc = {l, t, r, b};
+    return (bool)ClipCursor(&rc);
+}
+
+/* Fare kilidini kaldır */
+bool kbas_UnclipMouse() {
+    return (bool)ClipCursor(NULL);
+}
+
+/* Çift tıklama süresi (ms) */
+int kbas_GetDoubleClickTime() {
+    return (int)GetDoubleClickTime();
+}
+
+/* Mouse sol/sağ düğme takası (true = takaslı) */
+bool kbas_SwapMouseButton(bool swap) {
+    return (bool)SwapMouseButton(swap);
+}
+
+/* Sanal tuş → karakter */
+int kbas_VkToChar(int vKey) {
+    return (int)MapVirtualKeyA((UINT)vKey, MAPVK_VK_TO_CHAR);
+}
+
+/* Karakter → sanal tuş */
+int kbas_CharToVk(int ch) {
+    return (int)(VkKeyScanA((char)ch) & 0xFF);
+}
+
+/* Programatik tuş basışı simüle et */
+void kbas_SimKeyPress(int vKey) {
+    keybd_event((BYTE)vKey, 0, 0, 0);
+    keybd_event((BYTE)vKey, 0, KEYEVENTF_KEYUP, 0);
+}
+
+/* Programatik fare tıklaması simüle et */
+void kbas_SimMouseClick(int x, int y) {
+    SetCursorPos(x, y);
+    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+    mouse_event(MOUSEEVENTF_LEFTUP,   0, 0, 0, 0);
+}
+
+/* Programatik sağ tıklama */
+void kbas_SimRightClick(int x, int y) {
+    SetCursorPos(x, y);
+    mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+    mouse_event(MOUSEEVENTF_RIGHTUP,   0, 0, 0, 0);
+}
+
+/* Fare tekerleği simüle et */
+void kbas_SimMouseWheel(int delta) {
+    mouse_event(MOUSEEVENTF_WHEEL, 0, 0, (DWORD)delta, 0);
+}
+
+/* ════════════════════════════════════════════════
+   5. ZAMANLAMA  (kernel32 + winmm)
+   ════════════════════════════════════════════════ */
+
+int  kbas_GetTickCount() { return (int)GetTickCount(); }
+void kbas_Sleep(int ms)  { Sleep((DWORD)ms); }
+
+/* Yüksek çözünürlüklü sayaç - saniyeye böl */
+double kbas_GetTime() {
+    LARGE_INTEGER freq, now;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&now);
+    return (double)now.QuadPart / (double)freq.QuadPart;
+}
+
+/* Yüksek çözünürlüklü ham sayaç */
+int kbas_GetPerformanceCounter() {
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+    return (int)(now.QuadPart & 0x7FFFFFFF);
+}
+
+/* Zamanlayıcı frekansı (tik/saniye) */
+int kbas_GetPerformanceFrequency() {
+    LARGE_INTEGER freq;
+    QueryPerformanceFrequency(&freq);
+    return (int)freq.QuadPart;
+}
+
+/* Multimedya zamanlayıcı (ms cinsinden sistem süresi) */
+int kbas_TimeGetTime() {
+    return (int)timeGetTime();
+}
+
+/* ════════════════════════════════════════════════
+   6. DOSYA & DİZİN  (kernel32)
+   ════════════════════════════════════════════════ */
+
+/* Dosya var mı? */
+bool kbas_FileExists(char* path) {
+    DWORD attr = GetFileAttributesA(path);
+    return (attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+/* Dizin var mı? */
+bool kbas_DirExists(char* path) {
+    DWORD attr = GetFileAttributesA(path);
+    return (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+/* Dosya aç/oluştur; handle indeksi döner (-1 = hata) */
+int kbas_OpenFile(char* path, int access, int shareMode, int creation) {
+    HANDLE h = CreateFileA(path, (DWORD)access, (DWORD)shareMode,
+                           NULL, (DWORD)creation, FILE_ATTRIBUTE_NORMAL, NULL);
+    return kbas__alloc_handle(h);
+}
+
+/* Handle kapat */
+bool kbas_CloseHandle(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    if (!h) return false;
+    bool ok = (bool)CloseHandle(h);
+    g_handles[hIdx] = NULL;
+    return ok;
+}
+
+/* Dosyayı oku (max len bayt); okunan bayt sayısını döner */
+int kbas_ReadFile(int hIdx, char* buf, int len) {
+    HANDLE h = kbas__get_handle(hIdx);
+    if (!h) return -1;
+    DWORD read = 0;
+    ReadFile(h, buf, (DWORD)len, &read, NULL);
+    return (int)read;
+}
+
+/* Dosyaya yaz */
+int kbas_WriteFile(int hIdx, char* buf, int len) {
+    HANDLE h = kbas__get_handle(hIdx);
+    if (!h) return -1;
+    DWORD written = 0;
+    WriteFile(h, buf, (DWORD)(len < 0 ? (int)strlen(buf) : len), &written, NULL);
+    return (int)written;
+}
+
+/* Dosya imlecini konumlandır (from: 0=baş, 1=şimdiki, 2=son) */
+int kbas_SetFilePointer(int hIdx, int offset, int from) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (int)SetFilePointer(h, (LONG)offset, NULL, (DWORD)from) : -1;
+}
+
+/* Dosya boyutu (bayt) */
+int kbas_GetFileSize(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    if (!h) return -1;
+    DWORD hi = 0;
+    DWORD lo = GetFileSize(h, &hi);
+    return (int)lo;
+}
+
+/* Dosya sonu mu? */
+bool kbas_IsEOF(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    if (!h) return true;
+    DWORD cur = SetFilePointer(h, 0, NULL, FILE_CURRENT);
+    DWORD sz  = GetFileSize(h, NULL);
+    return cur >= sz;
+}
+
+/* Kolay metin yaz */
+bool kbas_WriteTextFile(char* path, char* text) {
+    HANDLE h = CreateFileA(path, GENERIC_WRITE, 0, NULL,
+                           CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    DWORD written;
+    WriteFile(h, text, (DWORD)strlen(text), &written, NULL);
+    CloseHandle(h);
+    return true;
+}
+
+/* Kolay metin ekle */
+bool kbas_AppendTextFile(char* path, char* text) {
+    HANDLE h = CreateFileA(path, FILE_APPEND_DATA, 0, NULL,
+                           OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (h == INVALID_HANDLE_VALUE) return false;
+    DWORD written;
+    SetFilePointer(h, 0, NULL, FILE_END);
+    WriteFile(h, text, (DWORD)strlen(text), &written, NULL);
+    CloseHandle(h);
+    return true;
+}
+
+/* Kolay metin oku (g_strbuf'a yazar) */
+char* kbas_ReadTextFile(char* path) {
+    HANDLE h = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ,
+                           NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    g_strbuf[0] = 0;
+    if (h == INVALID_HANDLE_VALUE) return kbc_str_dup(g_strbuf);
+    DWORD sz  = GetFileSize(h, NULL);
+    DWORD toRead = sz < (DWORD)(KBAS_STRBUF_SIZE - 1) ? sz : (DWORD)(KBAS_STRBUF_SIZE - 1);
+    DWORD read;
+    ReadFile(h, g_strbuf, toRead, &read, NULL);
+    g_strbuf[read] = 0;
+    CloseHandle(h);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Dosya sil */
+bool kbas_DeleteFile(char* path) { return (bool)DeleteFileA(path); }
+
+/* Dosya kopyala */
+bool kbas_CopyFile(char* src, char* dst, bool failIfExists) {
+    return (bool)CopyFileA(src, dst, failIfExists);
+}
+
+/* Dosya taşı / yeniden adlandır */
+bool kbas_MoveFile(char* src, char* dst) { return (bool)MoveFileA(src, dst); }
+
+/* Dizin oluştur */
+bool kbas_CreateDir(char* path) { return (bool)CreateDirectoryA(path, NULL); }
+
+/* Dizin sil (boş olmalı) */
+bool kbas_RemoveDir(char* path) { return (bool)RemoveDirectoryA(path); }
+
+/* Geçici klasör yolu */
+char* kbas_GetTempPath() {
+    GetTempPathA(KBAS_STRBUF_SIZE, g_strbuf);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Geçici dosya adı oluştur */
+char* kbas_GetTempFileName(char* prefix) {
+    char tmp[MAX_PATH];
+    GetTempPathA(MAX_PATH, tmp);
+    GetTempFileNameA(tmp, prefix ? prefix : "kbas", 0, g_strbuf);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Mevcut dizin */
+char* kbas_GetCurrentDir() {
+    GetCurrentDirectoryA(KBAS_STRBUF_SIZE, g_strbuf);
+    return kbc_str_dup(g_strbuf);
+}
+
+bool kbas_SetCurrentDir(char* path) {
+    return (bool)SetCurrentDirectoryA(path);
+}
+
+/* Dosya öznitelikleri */
+int  kbas_GetFileAttributes(char* path) { return (int)GetFileAttributesA(path); }
+bool kbas_SetFileAttributes(char* path, int attr) {
+    return (bool)SetFileAttributesA(path, (DWORD)attr);
+}
+
+/* Tam yol */
+char* kbas_GetFullPath(char* path) {
+    GetFullPathNameA(path, KBAS_STRBUF_SIZE, g_strbuf, NULL);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Dosyaları listele - FindFirstFile / FindNextFile sarmalı */
+static WIN32_FIND_DATAA g_finddata;
+static HANDLE g_find_handle = INVALID_HANDLE_VALUE;
+
+bool kbas_FindFirst(char* pattern) {
+    if (g_find_handle != INVALID_HANDLE_VALUE) FindClose(g_find_handle);
+    g_find_handle = FindFirstFileA(pattern, &g_finddata);
+    return g_find_handle != INVALID_HANDLE_VALUE;
+}
+bool kbas_FindNext() {
+    return g_find_handle != INVALID_HANDLE_VALUE
+        && (bool)FindNextFileA(g_find_handle, &g_finddata);
+}
+void kbas_FindClose2() {
+    if (g_find_handle != INVALID_HANDLE_VALUE) {
+        FindClose(g_find_handle);
+        g_find_handle = INVALID_HANDLE_VALUE;
+    }
+}
+char* kbas_FindGetName()     { return g_finddata.cFileName; }
+int   kbas_FindGetSize()     { return (int)g_finddata.nFileSizeLow; }
+bool  kbas_FindIsDir()       { return (g_finddata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0; }
+bool  kbas_FindIsReadOnly()  { return (g_finddata.dwFileAttributes & FILE_ATTRIBUTE_READONLY) != 0; }
+bool  kbas_FindIsHidden()    { return (g_finddata.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) != 0; }
+
+/* ════════════════════════════════════════════════
+   7. SÜREÇ & İŞ PARÇACĞI  (kernel32 + shell32)
+   ════════════════════════════════════════════════ */
+
+int  kbas_GetCurrentProcessId() { return (int)GetCurrentProcessId(); }
+int  kbas_GetCurrentThreadId()  { return (int)GetCurrentThreadId();  }
+
+/* Bir süreci çalıştır */
+int kbas_CreateProcess(char* path, char* args) {
+    STARTUPINFOA si = {sizeof(si)};
+    PROCESS_INFORMATION pi = {0};
+    char cmdline[4096];
+    snprintf(cmdline, sizeof(cmdline), "\"%s\" %s", path, args ? args : "");
+    bool ok = (bool)CreateProcessA(NULL, cmdline, NULL, NULL, FALSE,
+                                   0, NULL, NULL, &si, &pi);
+    if (!ok) return -1;
+    CloseHandle(pi.hThread);
+    int idx = kbas__alloc_handle(pi.hProcess);
+    return idx;
+}
+
+/* Süreci sonlandır */
+bool kbas_TerminateProcess(int hIdx, int exitCode) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (bool)TerminateProcess(h, (UINT)exitCode) : false;
+}
+
+/* Süreç çıkış kodu */
+int kbas_GetExitCode(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    if (!h) return -1;
+    DWORD code = 0;
+    GetExitCodeProcess(h, &code);
+    return (int)code;
+}
+
+/* Belirtilen süre kadar bekle (ms; -1 = sonsuz) */
+int kbas_WaitForProcess(int hIdx, int timeoutMs) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (int)WaitForSingleObject(h, (DWORD)timeoutMs) : -1;
+}
+
+/* Uygulamayı çıktıya aç (ShellExecute) */
+bool kbas_ShellOpen(char* path) {
+    return (INT_PTR)ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL) > 32;
+}
+
+bool kbas_ShellRun(char* path, char* args) {
+    return (INT_PTR)ShellExecuteA(NULL, "open", path, args, NULL, SW_SHOWNORMAL) > 32;
+}
+
+/* Mevcut çalışanın modül yolu */
+char* kbas_GetModulePath() {
+    GetModuleFileNameA(NULL, g_strbuf, KBAS_STRBUF_SIZE);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Komut satırı */
+char* kbas_GetCommandLine2() {
+    strncpy(g_strbuf, GetCommandLineA(), KBAS_STRBUF_SIZE - 1);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Uygulamayı sonlandır */
+void kbas_ExitProcess(int code) { ExitProcess((UINT)code); }
+
+/* Mutex oluştur */
+int kbas_CreateMutex(char* name) {
+    HANDLE h = CreateMutexA(NULL, FALSE, name && strlen(name) ? name : NULL);
+    return kbas__alloc_handle(h);
+}
+
+/* Mutex al */
+bool kbas_LockMutex(int hIdx, int timeoutMs) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (WaitForSingleObject(h, (DWORD)timeoutMs) == WAIT_OBJECT_0) : false;
+}
+
+/* Mutex bırak */
+bool kbas_UnlockMutex(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (bool)ReleaseMutex(h) : false;
+}
+
+/* Event oluştur */
+int kbas_CreateEvent(char* name, bool manualReset, bool initialState) {
+    HANDLE h = CreateEventA(NULL, manualReset, initialState,
+                            name && strlen(name) ? name : NULL);
+    return kbas__alloc_handle(h);
+}
+
+bool kbas_SetEvent(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (bool)SetEvent(h) : false;
+}
+
+bool kbas_ResetEvent(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (bool)ResetEvent(h) : false;
+}
+
+bool kbas_WaitForEvent(int hIdx, int timeoutMs) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (WaitForSingleObject(h, (DWORD)timeoutMs) == WAIT_OBJECT_0) : false;
+}
+
+/* ════════════════════════════════════════════════
+   8. BELLEK YÖNETİMİ  (kernel32)
+   ════════════════════════════════════════════════ */
+
+/* Yığın bellekten tahsis et */
+int kbas_HeapAlloc(int size) {
+    HANDLE h = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (SIZE_T)size);
+    return kbas__alloc_handle(h);
+}
+
+bool kbas_HeapFree(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    if (!h) return false;
+    bool ok = (bool)HeapFree(GetProcessHeap(), 0, h);
+    g_handles[hIdx] = NULL;
+    return ok;
+}
+
+/* Global bellek */
+int kbas_GlobalAlloc(int size) {
+    HANDLE h = GlobalAlloc(GMEM_ZEROINIT, (SIZE_T)size);
+    return kbas__alloc_handle(h);
+}
+
+int kbas_GlobalSize2(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    return h ? (int)GlobalSize(h) : 0;
+}
+
+bool kbas_GlobalFree2(int hIdx) {
+    HANDLE h = kbas__get_handle(hIdx);
+    if (!h) return false;
+    bool ok = (GlobalFree(h) == NULL);
+    g_handles[hIdx] = NULL;
+    return ok;
+}
+
+/* Toplam fiziksel RAM (MB) */
+int kbas_GetTotalRAM() {
+    MEMORYSTATUSEX ms = {sizeof(ms)};
+    GlobalMemoryStatusEx(&ms);
+    return (int)(ms.ullTotalPhys / (1024 * 1024));
+}
+
+/* Kullanılabilir RAM (MB) */
+int kbas_GetFreeRAM() {
+    MEMORYSTATUSEX ms = {sizeof(ms)};
+    GlobalMemoryStatusEx(&ms);
+    return (int)(ms.ullAvailPhys / (1024 * 1024));
+}
+
+/* RAM kullanım yüzdesi */
+int kbas_GetRAMUsagePercent() {
+    MEMORYSTATUSEX ms = {sizeof(ms)};
+    GlobalMemoryStatusEx(&ms);
+    return (int)ms.dwMemoryLoad;
+}
+
+/* Toplam sanal bellek (MB) */
+int kbas_GetTotalVirtualMem() {
+    MEMORYSTATUSEX ms = {sizeof(ms)};
+    GlobalMemoryStatusEx(&ms);
+    return (int)(ms.ullTotalVirtual / (1024 * 1024));
+}
+
+/* ════════════════════════════════════════════════
+   9. KAYIT DEFTERİ  (advapi32)
+   ════════════════════════════════════════════════ */
+
+/* Kök anahtarları: 0=HKLM, 1=HKCU, 2=HKCR, 3=HKU, 4=HKCC */
+static HKEY kbas__rootkey(int root) {
+    switch (root) {
+        case 0: return HKEY_LOCAL_MACHINE;
+        case 1: return HKEY_CURRENT_USER;
+        case 2: return HKEY_CLASSES_ROOT;
+        case 3: return HKEY_USERS;
+        case 4: return HKEY_CURRENT_CONFIG;
+        default: return HKEY_CURRENT_USER;
+    }
+}
+
+/* Anahtar aç (-1 = hata) */
+int kbas_RegOpenKey(int root, char* subKey, bool write) {
+    HKEY hKey;
+    REGSAM access = KEY_READ | (write ? KEY_WRITE : 0);
+    LSTATUS r = RegOpenKeyExA(kbas__rootkey(root), subKey, 0, access, &hKey);
+    return (r == ERROR_SUCCESS) ? kbas__alloc_key(hKey) : -1;
+}
+
+/* Anahtar oluştur veya aç */
+int kbas_RegCreateKey(int root, char* subKey) {
+    HKEY hKey;
+    LSTATUS r = RegCreateKeyExA(kbas__rootkey(root), subKey, 0, NULL,
+                                REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS,
+                                NULL, &hKey, NULL);
+    return (r == ERROR_SUCCESS) ? kbas__alloc_key(hKey) : -1;
+}
+
+/* Anahtar kapat */
+bool kbas_RegCloseKey(int kIdx) {
+    HKEY k = kbas__get_key(kIdx);
+    if (!k) return false;
+    bool ok = (RegCloseKey(k) == ERROR_SUCCESS);
+    g_regkeys[kIdx] = NULL;
+    return ok;
+}
+
+/* String değer oku */
+char* kbas_RegGetString(int kIdx, char* valueName) {
+    HKEY k = kbas__get_key(kIdx);
+    g_strbuf[0] = 0;
+    if (!k) return kbc_str_dup(g_strbuf);
+    DWORD type, sz = KBAS_STRBUF_SIZE;
+    RegQueryValueExA(k, valueName, NULL, &type, (LPBYTE)g_strbuf, &sz);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* String değer yaz */
+bool kbas_RegSetString(int kIdx, char* valueName, char* value) {
+    HKEY k = kbas__get_key(kIdx);
+    if (!k) return false;
+    return RegSetValueExA(k, valueName, 0, REG_SZ,
+                          (LPBYTE)value, (DWORD)(strlen(value) + 1)) == ERROR_SUCCESS;
+}
+
+/* DWORD değer oku */
+int kbas_RegGetDword(int kIdx, char* valueName) {
+    HKEY k = kbas__get_key(kIdx);
+    if (!k) return 0;
+    DWORD val, sz = sizeof(DWORD), type;
+    RegQueryValueExA(k, valueName, NULL, &type, (LPBYTE)&val, &sz);
+    return (int)val;
+}
+
+/* DWORD değer yaz */
+bool kbas_RegSetDword(int kIdx, char* valueName, int value) {
+    HKEY k = kbas__get_key(kIdx);
+    if (!k) return false;
+    DWORD v = (DWORD)value;
+    return RegSetValueExA(k, valueName, 0, REG_DWORD, (LPBYTE)&v, sizeof(v)) == ERROR_SUCCESS;
+}
+
+/* Değer sil */
+bool kbas_RegDeleteValue2(int kIdx, char* valueName) {
+    HKEY k = kbas__get_key(kIdx);
+    return k ? RegDeleteValueA(k, valueName) == ERROR_SUCCESS : false;
+}
+
+/* Alt anahtar sil */
+bool kbas_RegDeleteKey2(int root, char* subKey) {
+    return RegDeleteKeyA(kbas__rootkey(root), subKey) == ERROR_SUCCESS;
+}
+
+/* ════════════════════════════════════════════════
+   10. PANO  (user32)
+   ════════════════════════════════════════════════ */
+
+bool kbas_OpenClipboard() {
+    return (bool)OpenClipboard(NULL);
+}
+
+bool kbas_CloseClipboard2() {
+    return (bool)CloseClipboard();
+}
+
+bool kbas_EmptyClipboard2() {
+    return (bool)EmptyClipboard();
+}
+
+bool kbas_ClipboardHasText() {
+    return (bool)IsClipboardFormatAvailable(CF_TEXT);
+}
+
+/* Pano'dan metin al */
+char* kbas_GetClipboardText() {
+    g_strbuf[0] = 0;
+    if (!OpenClipboard(NULL)) return kbc_str_dup(g_strbuf);
+    HANDLE h = GetClipboardData(CF_TEXT);
+    if (h) {
+        char* p = (char*)GlobalLock(h);
+        if (p) {
+            strncpy(g_strbuf, p, KBAS_STRBUF_SIZE - 1);
+            GlobalUnlock(h);
+        }
+    }
+    CloseClipboard();
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Pano'ya metin koy */
+bool kbas_SetClipboardText(char* text) {
+    if (!OpenClipboard(NULL)) return false;
+    EmptyClipboard();
+    SIZE_T len = strlen(text) + 1;
+    HANDLE hMem = GlobalAlloc(GMEM_MOVEABLE, len);
+    if (!hMem) { CloseClipboard(); return false; }
+    memcpy(GlobalLock(hMem), text, len);
+    GlobalUnlock(hMem);
+    SetClipboardData(CF_TEXT, hMem);
+    CloseClipboard();
+    return true;
+}
+
+/* ════════════════════════════════════════════════
+   11. MULTİMEDYA & SES  (winmm)
+   ════════════════════════════════════════════════ */
+
+/* .wav dosyası çal (asenkron) */
+bool kbas_PlayWav(char* path) {
+    return (bool)PlaySoundA(path, NULL, SND_FILENAME | SND_ASYNC);
+}
+
+/* .wav dosyası çal (senkron - bitene kadar bekle) */
+bool kbas_PlayWavSync(char* path) {
+    return (bool)PlaySoundA(path, NULL, SND_FILENAME | SND_SYNC);
+}
+
+/* Sesi durdur */
+void kbas_StopSound() {
+    PlaySoundA(NULL, NULL, 0);
+}
+
+/* Sistem sesi çal */
+bool kbas_PlaySystemSound(char* alias) {
+    return (bool)PlaySoundA(alias, NULL, SND_ALIAS | SND_ASYNC);
+}
+
+/* Bip sesi */
+bool kbas_Beep2(int freq, int ms) {
+    return (bool)Beep((DWORD)freq, (DWORD)ms);
+}
+
+/* MCI komutunu çalıştır (video/müzik kontrolü) */
+char* kbas_MciSend(char* command) {
+    mciSendStringA(command, g_strbuf, KBAS_STRBUF_SIZE, NULL);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Dalga çıkış cihazı sayısı */
+int kbas_GetWaveOutDevCount() {
+    return (int)waveOutGetNumDevs();
+}
+
+/* ════════════════════════════════════════════════
+   12. KABUK & ORTAM  (shell32 + kernel32)
+   ════════════════════════════════════════════════ */
+
+/* Ortam değişkeni oku */
+char* kbas_GetEnv(char* name) {
+    GetEnvironmentVariableA(name, g_strbuf, KBAS_STRBUF_SIZE);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Ortam değişkeni yaz */
+bool kbas_SetEnv(char* name, char* value) {
+    return (bool)SetEnvironmentVariableA(name, value);
+}
+
+/* %APPDATA% yolunu genişlet */
+char* kbas_ExpandEnv(char* str) {
+    ExpandEnvironmentStringsA(str, g_strbuf, KBAS_STRBUF_SIZE);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Windows klasörleri (CSIDL) */
+char* kbas_GetFolderPath(int csidl) {
+    SHGetFolderPathA(NULL, csidl, NULL, 0, g_strbuf);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Windows dizini */
+char* kbas_GetWindowsDir() {
+    GetWindowsDirectoryA(g_strbuf, KBAS_STRBUF_SIZE);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* System32 dizini */
+char* kbas_GetSystemDir() {
+    GetSystemDirectoryA(g_strbuf, KBAS_STRBUF_SIZE);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* URL veya dosyayı varsayılan programla aç */
+bool kbas_OpenURL(char* url) {
+    return (INT_PTR)ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL) > 32;
+}
+
+/* Sürücü türü (3=sabit, 2=çıkarılabilir, 4=ağ, 5=CD, 6=RAM disk) */
+int kbas_GetDriveType2(char* rootPath) {
+    return (int)GetDriveTypeA(rootPath);
+}
+
+/* Sürücü boş alan (MB) */
+int kbas_GetDiskFreeSpaceMB(char* path) {
+    ULARGE_INTEGER free, total, totalFree;
+    GetDiskFreeSpaceExA(path, &free, &total, &totalFree);
+    return (int)(free.QuadPart / (1024 * 1024));
+}
+
+/* Sürücü toplam alan (MB) */
+int kbas_GetDiskTotalSpaceMB(char* path) {
+    ULARGE_INTEGER free, total, totalFree;
+    GetDiskFreeSpaceExA(path, &free, &total, &totalFree);
+    return (int)(total.QuadPart / (1024 * 1024));
+}
+
+/* Mantıksal sürücü maskesi (bit=sürücü, 0=A, 1=B, 2=C ...) */
+int kbas_GetLogicalDrives2() {
+    return (int)GetLogicalDrives();
+}
+
+/* ════════════════════════════════════════════════
+   13. KONSOL  (kernel32)
+   ════════════════════════════════════════════════ */
+
+bool kbas_AllocConsole2() { 
+    FreeConsole();
+    if (!AllocConsole()) return false;
+    FILE* dummy;
+    freopen_s(&dummy, "CONOUT$", "w", stdout);
+    freopen_s(&dummy, "CONOUT$", "w", stderr);
+    freopen_s(&dummy, "CONIN$", "r", stdin);
+    HANDLE hOut = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hIn = CreateFileA("CONIN$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hOut != INVALID_HANDLE_VALUE) SetStdHandle(STD_OUTPUT_HANDLE, hOut);
+    if (hIn != INVALID_HANDLE_VALUE) SetStdHandle(STD_INPUT_HANDLE, hIn);
+    return true;
+}
+bool kbas_FreeConsole2()  { return (bool)FreeConsole();  }
+
+/* Konsol başlığı */
+bool kbas_SetConsoleTitle2(char* title) {
+    return (bool)SetConsoleTitleA(title);
+}
+
+/* Konsol başlığı oku */
+char* kbas_GetConsoleTitle2() {
+    GetConsoleTitleA(g_strbuf, KBAS_STRBUF_SIZE);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Konsola yaz */
+bool kbas_WriteConsole2(char* text) {
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (!h || h == INVALID_HANDLE_VALUE) return false;
+    DWORD written;
+    if (!WriteConsoleA(h, text, (DWORD)strlen(text), &written, NULL)) {
+        return (bool)WriteFile(h, text, (DWORD)strlen(text), &written, NULL);
+    }
+    return true;
+}
+
+/* Konsoldan oku */
+char* kbas_ReadConsole2(int maxLen) {
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    g_strbuf[0] = 0;
+    if (!h || h == INVALID_HANDLE_VALUE) return kbc_str_dup(g_strbuf);
+    DWORD read = 0;
+    int n = maxLen < KBAS_STRBUF_SIZE - 1 ? maxLen : KBAS_STRBUF_SIZE - 1;
+    if (!ReadConsoleA(h, g_strbuf, (DWORD)n, &read, NULL)) {
+        if (!ReadFile(h, g_strbuf, (DWORD)n, &read, NULL)) {
+            return kbc_str_dup(g_strbuf);
+        }
+    }
+    g_strbuf[read] = 0;
+    /* Satır sonu temizle */
+    for (int i = (int)read - 1; i >= 0 && (g_strbuf[i]=='\n'||g_strbuf[i]=='\r'); i--)
+        g_strbuf[i] = 0;
+    return kbc_str_dup(g_strbuf);
+}
+
+bool kbas_strcmp(char* a, char* b) {
+    if (!a || !b) return false;
+    
+    char bufA[256];
+    char bufB[256];
+    strncpy(bufA, a, 255); bufA[255] = '\0';
+    strncpy(bufB, b, 255); bufB[255] = '\0';
+    
+    // a'nın sonundaki boşluk ve kontrol karakterlerini sil (trim right)
+    int lenA = (int)strlen(bufA);
+    while(lenA > 0 && bufA[lenA-1] <= 32) {
+        bufA[lenA-1] = '\0';
+        lenA--;
+    }
+    
+    // b'nin sonundaki boşluk ve kontrol karakterlerini sil (trim right)
+    int lenB = (int)strlen(bufB);
+    while(lenB > 0 && bufB[lenB-1] <= 32) {
+        bufB[lenB-1] = '\0';
+        lenB--;
+    }
+    
+    // Baştaki boşlukları atla (trim left)
+    char* pA = bufA;
+    while(*pA && *pA <= 32) pA++;
+    
+    char* pB = bufB;
+    while(*pB && *pB <= 32) pB++;
+
+    return strcmp(pA, pB) == 0;
+}
+
+/* İmleç konumu (satır, sütun) */
+bool kbas_SetConsoleCursor(int x, int y) {
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD c = {(SHORT)x, (SHORT)y};
+    return h ? (bool)SetConsoleCursorPosition(h, c) : false;
+}
+
+/* Metin rengi (ön plan: 0-15, arka plan: 0-15) */
+bool kbas_SetConsoleColor(int fg, int bg) {
+    HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (!h || h == INVALID_HANDLE_VALUE) return false;
+    return (bool)SetConsoleTextAttribute(h, (WORD)((bg << 4) | fg));
+}
+
+void kbas_MsgBox(char* text, char* title) {
+    MessageBoxA(NULL, text, title, MB_OK | MB_ICONINFORMATION);
+}
+
+/* Konsol penceresini getir (hwnd indeks) */
+int kbas_GetConsoleWindow2() {
+    return kbas__alloc_hwnd(GetConsoleWindow());
+}
+
+/* ════════════════════════════════════════════════
+   14. SİSTEM BİLGİSİ  (kernel32)
+   ════════════════════════════════════════════════ */
+
+/* Bilgisayar adı */
+char* kbas_GetComputerName2() {
+    DWORD sz = KBAS_STRBUF_SIZE;
+    GetComputerNameA(g_strbuf, &sz);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* Kullanıcı adı */
+char* kbas_GetUserName2() {
+    DWORD sz = KBAS_STRBUF_SIZE;
+    GetUserNameA(g_strbuf, &sz);
+    return kbc_str_dup(g_strbuf);
+}
+
+/* İşlemci sayısı */
+int kbas_GetCPUCount() {
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return (int)si.dwNumberOfProcessors;
+}
+
+/* İşlemci mimarisi (0=x86, 9=x64, 12=ARM64) */
+int kbas_GetCPUArch() {
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return (int)si.wProcessorArchitecture;
+}
+
+/* Sayfa boyutu */
+int kbas_GetPageSize() {
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return (int)si.dwPageSize;
+}
+
+/* Sistem zamanı: yıl, ay, gün, saat, dakika, saniye ayrı fonksiyonlar */
+static SYSTEMTIME kbas__st;
+static void kbas__update_time() { GetLocalTime(&kbas__st); }
+
+int kbas_GetYear()   { kbas__update_time(); return (int)kbas__st.wYear; }
+int kbas_GetMonth()  { kbas__update_time(); return (int)kbas__st.wMonth; }
+int kbas_GetDay()    { kbas__update_time(); return (int)kbas__st.wDay; }
+int kbas_GetHour()   { kbas__update_time(); return (int)kbas__st.wHour; }
+int kbas_GetMinute() { kbas__update_time(); return (int)kbas__st.wMinute; }
+int kbas_GetSecond() { kbas__update_time(); return (int)kbas__st.wSecond; }
+int kbas_GetMillisecond() { kbas__update_time(); return (int)kbas__st.wMilliseconds; }
+int kbas_GetDayOfWeek() { kbas__update_time(); return (int)kbas__st.wDayOfWeek; }
+
+/* UTC zaman */
+static SYSTEMTIME kbas__utc;
+static void kbas__update_utc() { GetSystemTime(&kbas__utc); }
+int kbas_GetUTCHour()   { kbas__update_utc(); return (int)kbas__utc.wHour; }
+int kbas_GetUTCMinute() { kbas__update_utc(); return (int)kbas__utc.wMinute; }
+
+/* Windows sürümü */
+int kbas_GetOSMajor() {
+    OSVERSIONINFOA v = {sizeof(v)};
+    GetVersionExA(&v);
+    return (int)v.dwMajorVersion;
+}
+int kbas_GetOSMinor() {
+    OSVERSIONINFOA v = {sizeof(v)};
+    GetVersionExA(&v);
+    return (int)v.dwMinorVersion;
+}
+
+/* Ekran çözünürlüğü */
+int kbas_GetScreenWidth2()  { return GetSystemMetrics(SM_CXSCREEN); }
+int kbas_GetScreenHeight2() { return GetSystemMetrics(SM_CYSCREEN); }
+
+/* Görev çubuğu hariç çalışma alanı */
+int kbas_GetWorkAreaWidth()  { return GetSystemMetrics(SM_CXFULLSCREEN); }
+int kbas_GetWorkAreaHeight() { return GetSystemMetrics(SM_CYFULLSCREEN); }
+
+/* Monitör sayısı */
+int kbas_GetMonitorCount() { return GetSystemMetrics(SM_CMONITORS); }
+
+/* ════════════════════════════════════════════════
+   15. GÜÇ YÖNETİMİ  (kernel32 + user32)
+   ════════════════════════════════════════════════ */
+
+/* Sistem kapatma / yeniden başlatma / oturumu kapat */
+bool kbas_Shutdown()  {
+    HANDLE tok; OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES|TOKEN_QUERY, &tok);
+    TOKEN_PRIVILEGES tp = {1}; LookupPrivilegeValueA(NULL, SE_SHUTDOWN_NAME, &tp.Privileges[0].Luid);
+    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; AdjustTokenPrivileges(tok, FALSE, &tp, 0, NULL, NULL);
+    return (bool)ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, SHTDN_REASON_MAJOR_OTHER);
+}
+bool kbas_Reboot() {
+    HANDLE tok; OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES|TOKEN_QUERY, &tok);
+    TOKEN_PRIVILEGES tp = {1}; LookupPrivilegeValueA(NULL, SE_SHUTDOWN_NAME, &tp.Privileges[0].Luid);
+    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED; AdjustTokenPrivileges(tok, FALSE, &tp, 0, NULL, NULL);
+    return (bool)ExitWindowsEx(EWX_REBOOT | EWX_FORCE, SHTDN_REASON_MAJOR_OTHER);
+}
+bool kbas_Logoff() {
+    return (bool)ExitWindowsEx(EWX_LOGOFF | EWX_FORCE, SHTDN_REASON_MAJOR_OTHER);
+}
+bool kbas_LockWorkstation2() {
+    return (bool)LockWorkStation();
+}
+
+/* Güç durumu */
+bool kbas_IsOnBattery() {
+    SYSTEM_POWER_STATUS ps;
+    GetSystemPowerStatus(&ps);
+    return ps.ACLineStatus == 0;
+}
+int kbas_BatteryPercent() {
+    SYSTEM_POWER_STATUS ps;
+    GetSystemPowerStatus(&ps);
+    return (ps.BatteryLifePercent == 255) ? -1 : (int)ps.BatteryLifePercent;
+}
+
+/* ════════════════════════════════════════════════
+   16. HATA YÖNETİMİ  (kernel32)
+   ════════════════════════════════════════════════ */
+
+int kbas_GetLastError2() {
+    return (int)GetLastError();
+}
+
+void kbas_SetLastError2(int code) {
+    SetLastError((DWORD)code);
+}
+
+char* kbas_GetErrorMessage(int code) {
+    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                   NULL, (DWORD)code, 0, g_strbuf, KBAS_STRBUF_SIZE, NULL);
+    /* Satır sonu temizle */
+    for (int i = (int)strlen(g_strbuf) - 1; i >= 0 && (g_strbuf[i]=='\n'||g_strbuf[i]=='\r'); i--)
+        g_strbuf[i] = 0;
+    return kbc_str_dup(g_strbuf);
+}
+
+char* kbas_GetLastErrorMessage() {
+    return kbas_GetErrorMessage((int)GetLastError());
+}
+"""
+
+# ═══════════════════════════════════════════════════════
+# SABİTLER
+# ═══════════════════════════════════════════════════════
+
+# ── MessageBox Tipleri ──
+func int MB_OK()               { return 0x00000000; }
+func int MB_OKCANCEL()         { return 0x00000001; }
+func int MB_ABORTRETRYIGNORE() { return 0x00000002; }
+func int MB_YESNOCANCEL()      { return 0x00000003; }
+func int MB_YESNO()            { return 0x00000004; }
+func int MB_RETRYCANCEL()      { return 0x00000005; }
+func int MB_ICONERROR()        { return 0x00000010; }
+func int MB_ICONWARNING()      { return 0x00000030; }
+func int MB_ICONINFO()         { return 0x00000040; }
+func int MB_ICONQUESTION()     { return 0x00000020; }
+func int MB_DEFBUTTON1()       { return 0x00000000; }
+func int MB_DEFBUTTON2()       { return 0x00000100; }
+func int MB_SYSTEMMODAL()      { return 0x00001000; }
+func int MB_TOPMOST()          { return 0x00040000; }
+
+# MessageBox Dönüş Değerleri
+func int IDOK()     { return 1; }
+func int IDCANCEL() { return 2; }
+func int IDABORT()  { return 3; }
+func int IDRETRY()  { return 4; }
+func int IDIGNORE() { return 5; }
+func int IDYES()    { return 6; }
+func int IDNO()     { return 7; }
+
+# MessageBeep Tipleri
+func int MB_BEEP_DEFAULT() { return 0xFFFFFFFF; }
+func int MB_BEEP_OK()      { return 0x00000000; }
+func int MB_BEEP_ERROR()   { return 0x00000010; }
+func int MB_BEEP_WARN()    { return 0x00000030; }
+func int MB_BEEP_INFO()    { return 0x00000040; }
+func int MB_BEEP_QUESTION(){ return 0x00000020; }
+
+# ── ShowWindow Parametreleri ──
+func int SW_HIDE()              { return 0;  }
+func int SW_SHOWNORMAL()        { return 1;  }
+func int SW_SHOWMINIMIZED()     { return 2;  }
+func int SW_SHOWMAXIMIZED()     { return 3;  }
+func int SW_SHOWNOACTIVATE()    { return 4;  }
+func int SW_SHOW()              { return 5;  }
+func int SW_MINIMIZE()          { return 6;  }
+func int SW_SHOWMINNOACTIVE()   { return 7;  }
+func int SW_SHOWNA()            { return 8;  }
+func int SW_RESTORE()           { return 9;  }
+func int SW_SHOWDEFAULT()       { return 10; }
+func int SW_FORCEMINIMIZE()     { return 11; }
+
+# ── SetWindowPos Bayrakları ──
+func int SWP_NOSIZE()       { return 0x0001; }
+func int SWP_NOMOVE()       { return 0x0002; }
+func int SWP_NOZORDER()     { return 0x0004; }
+func int SWP_NOACTIVATE()   { return 0x0010; }
+func int SWP_SHOWWINDOW()   { return 0x0040; }
+func int SWP_HIDEWINDOW()   { return 0x0080; }
+func int SWP_NOREDRAW()     { return 0x0008; }
+func int SWP_FRAMECHANGED() { return 0x0020; }
+
+# ── GetWindowLong İndeksleri ──
+func int GWL_STYLE()   { return -16; }
+func int GWL_EXSTYLE() { return -20; }
+func int GWL_ID()      { return -12; }
+func int GWLP_HWNDPARENT() { return -8; }
+
+# ── Pencere Stilleri ──
+func int WS_OVERLAPPED()   { return 0x00000000; }
+func int WS_POPUP()        { return 0x80000000; }
+func int WS_CHILD()        { return 0x40000000; }
+func int WS_MINIMIZE()     { return 0x20000000; }
+func int WS_VISIBLE()      { return 0x10000000; }
+func int WS_DISABLED()     { return 0x08000000; }
+func int WS_MAXIMIZE()     { return 0x01000000; }
+func int WS_CAPTION()      { return 0x00C00000; }
+func int WS_BORDER()       { return 0x00800000; }
+func int WS_THICKFRAME()   { return 0x00040000; }
+func int WS_MINIMIZEBOX()  { return 0x00020000; }
+func int WS_MAXIMIZEBOX()  { return 0x00010000; }
+func int WS_SYSMENU()      { return 0x00080000; }
+func int WS_OVERLAPPEDWINDOW() { return 0x00CF0000; }
+func int WS_EX_TOPMOST()   { return 0x00000008; }
+func int WS_EX_TOOLWINDOW(){ return 0x00000080; }
+func int WS_EX_LAYERED()   { return 0x00080000; }
+func int WS_EX_TRANSPARENT(){ return 0x00000020; }
+
+func int LWA_COLORKEY() { return 0x00000001; }
+func int LWA_ALPHA()    { return 0x00000002; }
+
+# ── Virtual Key Kodları ──
+func int VK_LBUTTON()  { return 0x01; }
+func int VK_RBUTTON()  { return 0x02; }
+func int VK_MBUTTON()  { return 0x04; }
+func int VK_BACK()     { return 0x08; }
+func int VK_TAB()      { return 0x09; }
+func int VK_RETURN()   { return 0x0D; }
+func int VK_SHIFT()    { return 0x10; }
+func int VK_CONTROL()  { return 0x11; }
+func int VK_MENU()     { return 0x12; }
+func int VK_PAUSE()    { return 0x13; }
+func int VK_CAPITAL()  { return 0x14; }
+func int VK_ESCAPE()   { return 0x1B; }
+func int VK_SPACE()    { return 0x20; }
+func int VK_PRIOR()    { return 0x21; }
+func int VK_NEXT()     { return 0x22; }
+func int VK_END()      { return 0x23; }
+func int VK_HOME()     { return 0x24; }
+func int VK_LEFT()     { return 0x25; }
+func int VK_UP()       { return 0x26; }
+func int VK_RIGHT()    { return 0x27; }
+func int VK_DOWN()     { return 0x28; }
+func int VK_SNAPSHOT() { return 0x2C; }
+func int VK_INSERT()   { return 0x2D; }
+func int VK_DELETE()   { return 0x2E; }
+func int VK_0() { return 0x30; } func int VK_1() { return 0x31; }
+func int VK_2() { return 0x32; } func int VK_3() { return 0x33; }
+func int VK_4() { return 0x34; } func int VK_5() { return 0x35; }
+func int VK_6() { return 0x36; } func int VK_7() { return 0x37; }
+func int VK_8() { return 0x38; } func int VK_9() { return 0x39; }
+func int VK_A() { return 0x41; } func int VK_B() { return 0x42; }
+func int VK_C() { return 0x43; } func int VK_D() { return 0x44; }
+func int VK_E() { return 0x45; } func int VK_F() { return 0x46; }
+func int VK_G() { return 0x47; } func int VK_H() { return 0x48; }
+func int VK_I() { return 0x49; } func int VK_J() { return 0x4A; }
+func int VK_K() { return 0x4B; } func int VK_L() { return 0x4C; }
+func int VK_M() { return 0x4D; } func int VK_N() { return 0x4E; }
+func int VK_O() { return 0x4F; } func int VK_P() { return 0x50; }
+func int VK_Q() { return 0x51; } func int VK_R() { return 0x52; }
+func int VK_S() { return 0x53; } func int VK_T() { return 0x54; }
+func int VK_U() { return 0x55; } func int VK_V() { return 0x56; }
+func int VK_W() { return 0x57; } func int VK_X() { return 0x58; }
+func int VK_Y() { return 0x59; } func int VK_Z() { return 0x5A; }
+func int VK_LWIN()  { return 0x5B; }
+func int VK_RWIN()  { return 0x5C; }
+func int VK_APPS()  { return 0x5D; }
+func int VK_NUMPAD0() { return 0x60; } func int VK_NUMPAD1() { return 0x61; }
+func int VK_NUMPAD2() { return 0x62; } func int VK_NUMPAD3() { return 0x63; }
+func int VK_NUMPAD4() { return 0x64; } func int VK_NUMPAD5() { return 0x65; }
+func int VK_NUMPAD6() { return 0x66; } func int VK_NUMPAD7() { return 0x67; }
+func int VK_NUMPAD8() { return 0x68; } func int VK_NUMPAD9() { return 0x69; }
+func int VK_MULTIPLY() { return 0x6A; }
+func int VK_ADD()      { return 0x6B; }
+func int VK_SUBTRACT() { return 0x6D; }
+func int VK_DECIMAL()  { return 0x6E; }
+func int VK_DIVIDE()   { return 0x6F; }
+func int VK_F1()  { return 0x70; } func int VK_F2()  { return 0x71; }
+func int VK_F3()  { return 0x72; } func int VK_F4()  { return 0x73; }
+func int VK_F5()  { return 0x74; } func int VK_F6()  { return 0x75; }
+func int VK_F7()  { return 0x76; } func int VK_F8()  { return 0x77; }
+func int VK_F9()  { return 0x78; } func int VK_F10() { return 0x79; }
+func int VK_F11() { return 0x7A; } func int VK_F12() { return 0x7B; }
+func int VK_NUMLOCK()  { return 0x90; }
+func int VK_SCROLL()   { return 0x91; }
+func int VK_LSHIFT()   { return 0xA0; }
+func int VK_RSHIFT()   { return 0xA1; }
+func int VK_LCONTROL() { return 0xA2; }
+func int VK_RCONTROL() { return 0xA3; }
+func int VK_LMENU()    { return 0xA4; }
+func int VK_RMENU()    { return 0xA5; }
+
+# ── GDI Kalem Stilleri ──
+func int PS_SOLID()      { return 0; }
+func int PS_DASH()       { return 1; }
+func int PS_DOT()        { return 2; }
+func int PS_DASHDOT()    { return 3; }
+func int PS_DASHDOTDOT() { return 4; }
+func int PS_NULL()       { return 5; }
+func int PS_INSIDEFRAME(){ return 6; }
+
+# ── GDI Fırça Stilleri ──
+func int HS_HORIZONTAL() { return 0; }
+func int HS_VERTICAL()   { return 1; }
+func int HS_FDIAGONAL()  { return 2; }
+func int HS_BDIAGONAL()  { return 3; }
+func int HS_CROSS()      { return 4; }
+func int HS_DIAGCROSS()  { return 5; }
+
+# ── GDI Arka Plan Modu ──
+func int BK_TRANSPARENT() { return 1; }
+func int BK_OPAQUE()      { return 2; }
+
+# ── BitBlt ROP Kodları ──
+func int SRCCOPY()     { return 0x00CC0020; }
+func int SRCPAINT()    { return 0x00EE0086; }
+func int SRCAND()      { return 0x008800C6; }
+func int SRCINVERT()   { return 0x00660046; }
+func int SRCERASE()    { return 0x00440328; }
+func int NOTSRCCOPY()  { return 0x00330008; }
+func int WHITENESS()   { return 0x00FF0062; }
+func int BLACKNESS()   { return 0x00000042; }
+func int PATCOPY()     { return 0x00F00021; }
+func int PATINVERT()   { return 0x005A0049; }
+
+# ── Font Ağırlıkları ──
+func int FW_THIN()       { return 100; }
+func int FW_NORMAL()     { return 400; }
+func int FW_BOLD()       { return 700; }
+func int FW_EXTRABOLD()  { return 800; }
+func int FW_BLACK()      { return 900; }
+
+# ── GetSystemMetrics İndeksleri ──
+func int SM_CXSCREEN()      { return 0;  }
+func int SM_CYSCREEN()      { return 1;  }
+func int SM_CXFULLSCREEN()  { return 16; }
+func int SM_CYFULLSCREEN()  { return 17; }
+func int SM_CXBORDER()      { return 5;  }
+func int SM_CYBORDER()      { return 6;  }
+func int SM_CXCURSOR()      { return 13; }
+func int SM_CYCURSOR()      { return 14; }
+func int SM_CYMENU()        { return 15; }
+func int SM_CMONITORS()     { return 80; }
+func int SM_MOUSEPRESENT()  { return 19; }
+func int SM_SWAPBUTTON()    { return 23; }
+
+# ── Dosya Erişim Bayrakları ──
+func int GENERIC_READ()    { return 0x80000000; }
+func int GENERIC_WRITE()   { return 0x40000000; }
+func int GENERIC_EXECUTE() { return 0x20000000; }
+func int GENERIC_ALL()     { return 0x10000000; }
+
+# ── Dosya Paylaşım Bayrakları ──
+func int FILE_SHARE_NONE()  { return 0; }
+func int FILE_SHARE_READ()  { return 1; }
+func int FILE_SHARE_WRITE() { return 2; }
+func int FILE_SHARE_ALL()   { return 3; }
+
+# ── Dosya Oluşturma Bayrakları ──
+func int CREATE_NEW()        { return 1; }
+func int CREATE_ALWAYS()     { return 2; }
+func int OPEN_EXISTING()     { return 3; }
+func int OPEN_ALWAYS()       { return 4; }
+func int TRUNCATE_EXISTING() { return 5; }
+
+# ── SetFilePointer from ──
+func int FILE_BEGIN()   { return 0; }
+func int FILE_CURRENT() { return 1; }
+func int FILE_END2()    { return 2; }
+
+# ── Dosya Öznitelikleri ──
+func int FILE_ATTR_READONLY()  { return 0x00000001; }
+func int FILE_ATTR_HIDDEN()    { return 0x00000002; }
+func int FILE_ATTR_SYSTEM()    { return 0x00000004; }
+func int FILE_ATTR_DIRECTORY() { return 0x00000010; }
+func int FILE_ATTR_ARCHIVE()   { return 0x00000020; }
+func int FILE_ATTR_NORMAL()    { return 0x00000080; }
+func int FILE_ATTR_TEMPORARY() { return 0x00000100; }
+
+# ── Registry Kökler ──
+func int HKLM() { return 0; }
+func int HKCU() { return 1; }
+func int HKCR() { return 2; }
+func int HKU()  { return 3; }
+func int HKCC() { return 4; }
+
+# ── Özel Klasör ID'leri (SHGetFolderPath) ──
+func int CSIDL_DESKTOP()       { return 0x0000; }
+func int CSIDL_INTERNET()      { return 0x0001; }
+func int CSIDL_PROGRAMS()      { return 0x0002; }
+func int CSIDL_PERSONAL()      { return 0x0005; }
+func int CSIDL_FAVORITES()     { return 0x0006; }
+func int CSIDL_STARTUP()       { return 0x0007; }
+func int CSIDL_RECENT()        { return 0x0008; }
+func int CSIDL_SENDTO()        { return 0x0009; }
+func int CSIDL_STARTMENU()     { return 0x000B; }
+func int CSIDL_MYMUSIC()       { return 0x000D; }
+func int CSIDL_MYVIDEO()       { return 0x000E; }
+func int CSIDL_DESKTOPDIRECTORY() { return 0x0010; }
+func int CSIDL_NETHOOD()       { return 0x0013; }
+func int CSIDL_FONTS()         { return 0x0014; }
+func int CSIDL_TEMPLATES()     { return 0x0015; }
+func int CSIDL_APPDATA()       { return 0x001A; }
+func int CSIDL_PRINTHOOD()     { return 0x001B; }
+func int CSIDL_LOCAL_APPDATA() { return 0x001C; }
+func int CSIDL_WINDOWS()       { return 0x0024; }
+func int CSIDL_SYSTEM()        { return 0x0025; }
+func int CSIDL_PROGRAM_FILES() { return 0x0026; }
+func int CSIDL_MYPICTURES()    { return 0x0027; }
+func int CSIDL_PROFILE()       { return 0x0028; }
+func int CSIDL_COMMON_STARTMENU() { return 0x0016; }
+func int CSIDL_COMMON_PROGRAMS()  { return 0x0017; }
+func int CSIDL_COMMON_DESKTOP()   { return 0x0019; }
+
+# ── Konsol Renkleri ──
+func int CON_BLACK()         { return 0;  }
+func int CON_DARKBLUE()      { return 1;  }
+func int CON_DARKGREEN()     { return 2;  }
+func int CON_DARKCYAN()      { return 3;  }
+func int CON_DARKRED()       { return 4;  }
+func int CON_DARKMAGENTA()   { return 5;  }
+func int CON_DARKYELLOW()    { return 6;  }
+func int CON_GRAY()          { return 7;  }
+func int CON_DARKGRAY()      { return 8;  }
+func int CON_BLUE()          { return 9;  }
+func int CON_GREEN()         { return 10; }
+func int CON_CYAN()          { return 11; }
+func int CON_RED()           { return 12; }
+func int CON_MAGENTA()       { return 13; }
+func int CON_YELLOW()        { return 14; }
+func int CON_WHITE()         { return 15; }
+
+# ── WaitForSingleObject dönüşleri ──
+func int WAIT_OBJECT()   { return 0x00000000; }
+func int WAIT_TIMEOUT()  { return 0x00000102; }
+func int WAIT_FAILED()   { return 0xFFFFFFFF; }
+func int WAIT_INFINITE() { return 0xFFFFFFFF; }
+
+# ── Sürücü Tipleri ──
+func int DRIVE_UNKNOWN()     { return 0; }
+func int DRIVE_NO_ROOT()     { return 1; }
+func int DRIVE_REMOVABLE()   { return 2; }
+func int DRIVE_FIXED()       { return 3; }
+func int DRIVE_REMOTE()      { return 4; }
+func int DRIVE_CDROM()       { return 5; }
+func int DRIVE_RAMDISK()     { return 6; }
+
+# ═══════════════════════════════════════════════════════
+# C WRAPPER BİLDİRİMLERİ
+# ═══════════════════════════════════════════════════════
+
+# Pencere Yönetimi
+func int  kbas_GetForegroundWindow();
+func int  kbas_GetDesktopWindow();
+func int  kbas_FindWindow(string className, string title);
+func int  kbas_FindWindowEx(int parentIdx, int childAfterIdx, string className, string title);
+func string kbas_GetWindowText(int hwndIdx);
+func bool kbas_SetWindowText(int hwndIdx, string text);
+func bool kbas_SetForegroundTitle(string text);
+func bool kbas_ShowWindow(int hwndIdx, int cmdShow);
+func bool kbas_MoveWindow(int hwndIdx, int x, int y, int w, int h, bool repaint);
+func bool kbas_SetWindowPos(int hwndIdx, int x, int y, int cx, int cy, int flags);
+func int  kbas_GetWindowLeft(int idx);
+func int  kbas_GetWindowTop(int idx);
+func int  kbas_GetWindowRight(int idx);
+func int  kbas_GetWindowBottom(int idx);
+func int  kbas_GetWindowWidth(int idx);
+func int  kbas_GetWindowHeight(int idx);
+func int  kbas_GetClientWidth(int idx);
+func int  kbas_GetClientHeight(int idx);
+func bool kbas_IsWindowVisible(int hwndIdx);
+func bool kbas_IsWindowEnabled(int hwndIdx);
+func bool kbas_EnableWindow(int hwndIdx, bool enable);
+func bool kbas_SetForegroundWindow(int hwndIdx);
+func bool kbas_BringWindowToTop(int hwndIdx);
+func bool kbas_FlashWindow(int hwndIdx, bool invert);
+func int  kbas_GetParent(int hwndIdx);
+func int  kbas_GetWindowLong(int hwndIdx, int index);
+func int  kbas_SetWindowLong(int hwndIdx, int index, int value);
+func int  kbas_GetWindowProcessId(int hwndIdx);
+func int  kbas_WindowFromPoint(int x, int y);
+func bool kbas_InvalidateWindow(int hwndIdx);
+func void kbas_FreeHwnd(int hwndIdx);
+func bool kbas_SetLayeredWindowAttributes(int hwndIdx, int r, int g, int b, int alpha, int flags);
+
+# Mesaj & Diyalog
+func int  kbas_MessageBox(string text, string caption, int type);
+func void kbas_MessageBeep(int type);
+func bool kbas_Beep(int freq, int durationMs);
+func string kbas_InputBox(string title, string prompt, string defaultVal);
+func void kbas_PostQuitMessage(int exitCode);
+
+# GDI
+func int  kbas_GetDC(int hwndIdx);
+func bool kbas_ReleaseDC(int hwndIdx, int dcIdx);
+func int  kbas_CreateCompatibleDC(int dcIdx);
+func bool kbas_DeleteDC(int dcIdx);
+func int  kbas_CreateCompatibleBitmap(int dcIdx, int w, int h);
+func int  kbas_SelectObject(int dcIdx, int objIdx);
+func bool kbas_DeleteObject(int objIdx);
+func bool kbas_BitBlt(int dstDcIdx, int dstX, int dstY, int w, int h, int srcDcIdx, int srcX, int srcY, int rop);
+func bool kbas_StretchBlt(int dstDcIdx, int dstX, int dstY, int dstW, int dstH, int srcDcIdx, int srcX, int srcY, int srcW, int srcH, int rop);
+func int  kbas_CreateSolidBrush(int r, int g, int b);
+func int  kbas_CreateHatchBrush(int style, int r, int g, int b);
+func int  kbas_CreatePen(int style, int width, int r, int g, int b);
+func int  kbas_CreateFont(int height, int width, int weight, bool italic, bool underline, bool strikeout, string faceName);
+func int  kbas_SetPixel(int dcIdx, int x, int y, int r, int g, int b);
+func int  kbas_GetPixelR(int dcIdx, int x, int y);
+func int  kbas_GetPixelG(int dcIdx, int x, int y);
+func int  kbas_GetPixelB(int dcIdx, int x, int y);
+func bool kbas_MoveTo(int dcIdx, int x, int y);
+func bool kbas_LineTo(int dcIdx, int x, int y);
+func bool kbas_Rectangle(int dcIdx, int l, int t, int r, int b);
+func bool kbas_Ellipse(int dcIdx, int l, int t, int r, int b);
+func bool kbas_RoundRect(int dcIdx, int l, int t, int r, int b, int ew, int eh);
+func bool kbas_FillRect(int dcIdx, int l, int t, int r, int b, int brushIdx);
+func bool kbas_FrameRect(int dcIdx, int l, int t, int r, int b, int brushIdx);
+func bool kbas_TextOut(int dcIdx, int x, int y, string text);
+func int  kbas_SetTextColor(int dcIdx, int r, int g, int b);
+func int  kbas_SetBkColor(int dcIdx, int r, int g, int b);
+func int  kbas_SetBkMode(int dcIdx, int mode);
+func int  kbas_GetTextWidth(int dcIdx, string text);
+func int  kbas_GetTextHeight(int dcIdx, string text);
+func bool kbas_PatBlt(int dcIdx, int x, int y, int w, int h, int rop);
+func int  kbas_GetSystemMetrics(int index);
+
+# Klavye & Fare
+func bool kbas_IsKeyPressed(int vKey);
+func bool kbas_WasKeyPressed(int vKey);
+func bool kbas_GetKeyState(int vKey);
+func int  kbas_GetMouseX();
+func int  kbas_GetMouseY();
+func bool kbas_SetMousePos(int x, int y);
+func int  kbas_ShowMouseCursor(bool show);
+func bool kbas_ClipMouse(int l, int t, int r, int b);
+func bool kbas_UnclipMouse();
+func int  kbas_GetDoubleClickTime();
+func bool kbas_SwapMouseButton(bool swap);
+func int  kbas_VkToChar(int vKey);
+func int  kbas_CharToVk(int ch);
+func void kbas_SimKeyPress(int vKey);
+func void kbas_SimMouseClick(int x, int y);
+func void kbas_SimRightClick(int x, int y);
+func void kbas_SimMouseWheel(int delta);
+
+# Zamanlama
+func int    kbas_GetTickCount();
+func void   kbas_Sleep(int ms);
+func decimal kbas_GetTime();
+func int    kbas_GetPerformanceCounter();
+func int    kbas_GetPerformanceFrequency();
+func int    kbas_TimeGetTime();
+
+# Dosya & Dizin
+func bool   kbas_FileExists(string path);
+func bool   kbas_DirExists(string path);
+func int    kbas_OpenFile(string path, int access, int shareMode, int creation);
+func bool   kbas_CloseHandle(int hIdx);
+func int    kbas_ReadFile(int hIdx, string buf, int len);
+func int    kbas_WriteFile(int hIdx, string buf, int len);
+func int    kbas_SetFilePointer(int hIdx, int offset, int from);
+func int    kbas_GetFileSize(int hIdx);
+func bool   kbas_IsEOF(int hIdx);
+func bool   kbas_WriteTextFile(string path, string text);
+func bool   kbas_AppendTextFile(string path, string text);
+func string kbas_ReadTextFile(string path);
+func bool   kbas_DeleteFile(string path);
+func bool   kbas_CopyFile(string src, string dst, bool failIfExists);
+func bool   kbas_MoveFile(string src, string dst);
+func bool   kbas_CreateDir(string path);
+func bool   kbas_RemoveDir(string path);
+func string kbas_GetTempPath();
+func string kbas_GetTempFileName(string prefix);
+func string kbas_GetCurrentDir();
+func bool   kbas_SetCurrentDir(string path);
+func int    kbas_GetFileAttributes(string path);
+func bool   kbas_SetFileAttributes(string path, int attr);
+func string kbas_GetFullPath(string path);
+func bool   kbas_FindFirst(string pattern);
+func bool   kbas_FindNext();
+func void   kbas_FindClose2();
+func string kbas_FindGetName();
+func int    kbas_FindGetSize();
+func bool   kbas_FindIsDir();
+func bool   kbas_FindIsReadOnly();
+func bool   kbas_FindIsHidden();
+
+# Süreç & İş Parçacığı
+func int  kbas_GetCurrentProcessId();
+func int  kbas_GetCurrentThreadId();
+func int  kbas_CreateProcess(string path, string args);
+func bool kbas_TerminateProcess(int hIdx, int exitCode);
+func int  kbas_GetExitCode(int hIdx);
+func int  kbas_WaitForProcess(int hIdx, int timeoutMs);
+func bool kbas_ShellOpen(string path);
+func bool kbas_ShellRun(string path, string args);
+func string kbas_GetModulePath();
+func string kbas_GetCommandLine2();
+func void kbas_ExitProcess(int code);
+func int  kbas_CreateMutex(string name);
+func bool kbas_LockMutex(int hIdx, int timeoutMs);
+func bool kbas_UnlockMutex(int hIdx);
+func int  kbas_CreateEvent(string name, bool manualReset, bool initialState);
+func bool kbas_SetEvent(int hIdx);
+func bool kbas_ResetEvent(int hIdx);
+func bool kbas_WaitForEvent(int hIdx, int timeoutMs);
+
+# Bellek
+func int  kbas_HeapAlloc(int size);
+func bool kbas_HeapFree(int hIdx);
+func int  kbas_GlobalAlloc(int size);
+func int  kbas_GlobalSize2(int hIdx);
+func bool kbas_GlobalFree2(int hIdx);
+func int  kbas_GetTotalRAM();
+func int  kbas_GetFreeRAM();
+func int  kbas_GetRAMUsagePercent();
+func int  kbas_GetTotalVirtualMem();
+
+# Kayıt Defteri
+func int    kbas_RegOpenKey(int root, string subKey, bool write);
+func int    kbas_RegCreateKey(int root, string subKey);
+func bool   kbas_RegCloseKey(int kIdx);
+func string kbas_RegGetString(int kIdx, string valueName);
+func bool   kbas_RegSetString(int kIdx, string valueName, string value);
+func int    kbas_RegGetDword(int kIdx, string valueName);
+func bool   kbas_RegSetDword(int kIdx, string valueName, int value);
+func bool   kbas_RegDeleteValue2(int kIdx, string valueName);
+func bool   kbas_RegDeleteKey2(int root, string subKey);
+
+# Pano
+func bool   kbas_OpenClipboard();
+func bool   kbas_CloseClipboard2();
+func bool   kbas_EmptyClipboard2();
+func bool   kbas_ClipboardHasText();
+func string kbas_GetClipboardText();
+func bool   kbas_SetClipboardText(string text);
+
+# Multimedya & Ses
+func bool   kbas_PlayWav(string path);
+func bool   kbas_PlayWavSync(string path);
+func void   kbas_StopSound();
+func bool   kbas_PlaySystemSound(string alias);
+func bool   kbas_Beep2(int freq, int ms);
+func string kbas_MciSend(string command);
+func int    kbas_GetWaveOutDevCount();
+
+# Kabuk & Ortam
+func string kbas_GetEnv(string name);
+func bool   kbas_SetEnv(string name, string value);
+func string kbas_ExpandEnv(string str);
+func string kbas_GetFolderPath(int csidl);
+func string kbas_GetWindowsDir();
+func string kbas_GetSystemDir();
+func bool   kbas_OpenURL(string url);
+func int    kbas_GetDriveType2(string rootPath);
+func int    kbas_GetDiskFreeSpaceMB(string path);
+func int    kbas_GetDiskTotalSpaceMB(string path);
+func int    kbas_GetLogicalDrives2();
+
+# Konsol
+func bool   kbas_AllocConsole2();
+func bool   kbas_FreeConsole2();
+func bool   kbas_SetConsoleTitle2(string title);
+func string kbas_GetConsoleTitle2();
+func bool   kbas_WriteConsole2(string text);
+func string kbas_ReadConsole2(int maxLen);
+func bool   kbas_strcmp(string a, string b);
+func bool   kbas_SetConsoleCursor(int x, int y);
+func bool   kbas_SetConsoleColor(int fg, int bg);
+func int    kbas_GetConsoleWindow2();
+
+# Sistem Bilgisi
+func string kbas_GetComputerName2();
+func string kbas_GetUserName2();
+func int    kbas_GetCPUCount();
+func int    kbas_GetCPUArch();
+func int    kbas_GetPageSize();
+func int    kbas_GetYear();
+func int    kbas_GetMonth();
+func int    kbas_GetDay();
+func int    kbas_GetHour();
+func int    kbas_GetMinute();
+func int    kbas_GetSecond();
+func int    kbas_GetMillisecond();
+func int    kbas_GetDayOfWeek();
+func int    kbas_GetUTCHour();
+func int    kbas_GetUTCMinute();
+func int    kbas_GetOSMajor();
+func int    kbas_GetOSMinor();
+func int    kbas_GetScreenWidth2();
+func int    kbas_GetScreenHeight2();
+func int    kbas_GetWorkAreaWidth();
+func int    kbas_GetWorkAreaHeight();
+func int    kbas_GetMonitorCount();
+
+# Güç Yönetimi
+func bool kbas_Shutdown();
+func bool kbas_Reboot();
+func bool kbas_Logoff();
+func bool kbas_LockWorkstation2();
+func bool kbas_IsOnBattery();
+func int  kbas_BatteryPercent();
+
+# Hata Yönetimi
+func int    kbas_GetLastError2();
+func void   kbas_SetLastError2(int code);
+func string kbas_GetErrorMessage(int code);
+func string kbas_GetLastErrorMessage();
+
+# ═══════════════════════════════════════════════════════
+# KBAS ARAYÜZİ  (büyük harfli, temiz API)
+# ═══════════════════════════════════════════════════════
+
+# ── Pencere ──
+func int    WIN_FOREGROUND()             { return kbas_GetForegroundWindow(); }
+func int    WIN_DESKTOP()                { return kbas_GetDesktopWindow(); }
+func int    WIN_FIND(string cls, string title) { return kbas_FindWindow(cls, title); }
+func string WIN_TITLE(int w)             { return kbas_GetWindowText(w); }
+func bool   WIN_SET_TITLE(string t)      { return kbas_SetForegroundTitle(t); }
+func bool   WIN_SHOW(int w, int mode)    { return kbas_ShowWindow(w, mode); }
+func bool   WIN_MOVE(int w, int x, int y, int ww, int h) { return kbas_MoveWindow(w, x, y, ww, h, true); }
+func int    WIN_X(int w)                 { return kbas_GetWindowLeft(w); }
+func int    WIN_Y(int w)                 { return kbas_GetWindowTop(w); }
+func int    WIN_W(int w)                 { return kbas_GetWindowWidth(w); }
+func int    WIN_H(int w)                 { return kbas_GetWindowHeight(w); }
+func bool   WIN_VISIBLE(int w)           { return kbas_IsWindowVisible(w); }
+func bool   WIN_TOPMOST(int w)           { return kbas_BringWindowToTop(w); }
+func bool   WIN_ENABLE(int w, bool e)    { return kbas_EnableWindow(w, e); }
+func bool   WIN_FLASH(int w)             { return kbas_FlashWindow(w, true); }
+func int    WIN_AT_POINT(int x, int y)   { return kbas_WindowFromPoint(x, y); }
+func void   WIN_FREE(int w)              { kbas_FreeHwnd(w); }
+func int  WIN_GET_LONG(int w, int idx)                             { return kbas_GetWindowLong(w, idx); }
+func int  WIN_SET_LONG(int w, int idx, int val)                    { return kbas_SetWindowLong(w, idx, val); }
+func bool WIN_POS(int w, int x, int y, int cx, int cy, int flags)  { return kbas_SetWindowPos(w, x, y, cx, cy, flags); }
+func bool WIN_SET_LAYERED(int w, int r, int g, int b, int alpha, int flags) { return kbas_SetLayeredWindowAttributes(w, r, g, b, alpha, flags); }
+
+# ── Diyalog ──
+func int  DIALOG(string text, string caption, int type) { return kbas_MessageBox(text, caption, type); }
+func void DIALOG_OK(string text, string caption)    { kbas_MessageBox(text, caption, MB_OK() | MB_ICONINFO()); }
+func void DIALOG_ERROR(string text, string caption) { kbas_MessageBox(text, caption, MB_OK() | MB_ICONERROR()); }
+func void DIALOG_WARN(string text, string caption)  { kbas_MessageBox(text, caption, MB_OK() | MB_ICONWARNING()); }
+func bool DIALOG_YESNO(string text, string caption) { return kbas_MessageBox(text, caption, MB_YESNO() | MB_ICONQUESTION()) == IDYES(); }
+func void BEEP_SYS(int type)  { kbas_MessageBeep(type); }
+func bool BEEP_HZ(int f, int ms) { return kbas_Beep(f, ms); }
+
+# ── GDI ──
+func int  GDI_GET_DC(int w)               { return kbas_GetDC(w); }
+func bool GDI_RELEASE_DC(int w, int dc)   { return kbas_ReleaseDC(w, dc); }
+func int  GDI_COMPAT_DC(int dc)           { return kbas_CreateCompatibleDC(dc); }
+func bool GDI_DELETE_DC(int dc)           { return kbas_DeleteDC(dc); }
+func int  GDI_COMPAT_BMP(int dc, int w, int h) { return kbas_CreateCompatibleBitmap(dc, w, h); }
+func int  GDI_SELECT(int dc, int obj)     { return kbas_SelectObject(dc, obj); }
+func bool GDI_DELETE(int obj)             { return kbas_DeleteObject(obj); }
+func bool GDI_BLIT(int ddc, int dx, int dy, int w, int h, int sdc, int sx, int sy, int rop) { return kbas_BitBlt(ddc, dx, dy, w, h, sdc, sx, sy, rop); }
+func int  GDI_BRUSH(int r, int g, int b)  { return kbas_CreateSolidBrush(r, g, b); }
+func int  GDI_HATCH(int s, int r, int g, int b) { return kbas_CreateHatchBrush(s, r, g, b); }
+func int  GDI_PEN(int s, int w, int r, int g, int b) { return kbas_CreatePen(s, w, r, g, b); }
+func int  GDI_FONT(int h, int bold, bool italic, string name) { return kbas_CreateFont(h, 0, bold, italic, false, false, name); }
+func bool GDI_PIXEL(int dc, int x, int y, int r, int g, int b) { return kbas_SetPixel(dc, x, y, r, g, b) >= 0; }
+func bool GDI_MOVE(int dc, int x, int y) { return kbas_MoveTo(dc, x, y); }
+func bool GDI_LINE(int dc, int x, int y) { return kbas_LineTo(dc, x, y); }
+func bool GDI_RECT(int dc, int l, int t, int r, int b) { return kbas_Rectangle(dc, l, t, r, b); }
+func bool GDI_ELLIPSE(int dc, int l, int t, int r, int b) { return kbas_Ellipse(dc, l, t, r, b); }
+func bool GDI_FILL(int dc, int l, int t, int r, int b, int br) { return kbas_FillRect(dc, l, t, r, b, br); }
+func bool GDI_TEXT(int dc, int x, int y, string text) { return kbas_TextOut(dc, x, y, text); }
+func void GDI_TEXT_COLOR(int dc, int r, int g, int b) { kbas_SetTextColor(dc, r, g, b); }
+func void GDI_BK_COLOR(int dc, int r, int g, int b)   { kbas_SetBkColor(dc, r, g, b); }
+func void GDI_BK_MODE(int dc, int mode)               { kbas_SetBkMode(dc, mode); }
+func int  SCREEN_METRIC(int idx)   { return kbas_GetSystemMetrics(idx); }
+
+# ── Klavye & Fare ──
+func bool KEY_HELD(int vk)     { return kbas_IsKeyPressed(vk); }
+func bool KEY_TAPPED(int vk)   { return kbas_WasKeyPressed(vk); }
+func int  MOUSE_X()            { return kbas_GetMouseX(); }
+func int  MOUSE_Y()            { return kbas_GetMouseY(); }
+func bool MOUSE_MOVE(int x, int y) { return kbas_SetMousePos(x, y); }
+func void MOUSE_HIDE()         { kbas_ShowMouseCursor(false); }
+func void MOUSE_SHOW()         { kbas_ShowMouseCursor(true); }
+func bool MOUSE_LOCK(int l, int t, int r, int b) { return kbas_ClipMouse(l, t, r, b); }
+func bool MOUSE_UNLOCK()       { return kbas_UnclipMouse(); }
+func void SIM_KEY(int vk)      { kbas_SimKeyPress(vk); }
+func void SIM_CLICK(int x, int y) { kbas_SimMouseClick(x, y); }
+func void SIM_RCLICK(int x, int y){ kbas_SimRightClick(x, y); }
+func void SIM_WHEEL(int d)     { kbas_SimMouseWheel(d); }
+
+# ── Zamanlama ──
+func int     TICK()          { return kbas_GetTickCount(); }
+func decimal HIGH_RES_TIME() { return kbas_GetTime(); }
+func void    WAIT(int ms)    { kbas_Sleep(ms); }
+func int     MEDIA_TIME()    { return kbas_TimeGetTime(); }
+
+# ── Dosya ──
+func bool   FILE_EXISTS(string p)          { return kbas_FileExists(p); }
+func bool   DIR_EXISTS(string p)           { return kbas_DirExists(p); }
+func bool   FILE_WRITE(string p, string t) { return kbas_WriteTextFile(p, t); }
+func bool   FILE_APPEND(string p, string t){ return kbas_AppendTextFile(p, t); }
+func string FILE_READ(string p)            { return kbas_ReadTextFile(p); }
+func bool   FILE_DELETE(string p)          { return kbas_DeleteFile(p); }
+func bool   FILE_COPY(string s, string d)  { return kbas_CopyFile(s, d, false); }
+func bool   FILE_MOVE(string s, string d)  { return kbas_MoveFile(s, d); }
+func bool   DIR_CREATE(string p)           { return kbas_CreateDir(p); }
+func bool   DIR_DELETE(string p)           { return kbas_RemoveDir(p); }
+func string TEMP_PATH()                    { return kbas_GetTempPath(); }
+func string TEMP_FILE(string prefix)       { return kbas_GetTempFileName(prefix); }
+func string CURRENT_DIR()                  { return kbas_GetCurrentDir(); }
+func bool   SET_DIR(string p)              { return kbas_SetCurrentDir(p); }
+func string FULL_PATH(string p)            { return kbas_GetFullPath(p); }
+func bool   FIND_FIRST(string pat)         { return kbas_FindFirst(pat); }
+func bool   FIND_NEXT()                    { return kbas_FindNext(); }
+func void   FIND_CLOSE()                   { kbas_FindClose2(); }
+func string FIND_NAME()                    { return kbas_FindGetName(); }
+func int    FIND_SIZE()                    { return kbas_FindGetSize(); }
+func bool   FIND_IS_DIR()                  { return kbas_FindIsDir(); }
+
+# ── Süreç ──
+func int  PID()                  { return kbas_GetCurrentProcessId(); }
+func int  TID()                  { return kbas_GetCurrentThreadId(); }
+func int  RUN(string p, string a){ return kbas_CreateProcess(p, a); }
+func bool KILL(int h, int c)     { return kbas_TerminateProcess(h, c); }
+func int  WAIT_PROC(int h, int t){ return kbas_WaitForProcess(h, t); }
+func bool OPEN(string p)         { return kbas_ShellOpen(p); }
+func bool OPEN_URL(string u)     { return kbas_OpenURL(u); }
+func string EXE_PATH()           { return kbas_GetModulePath(); }
+func void   EXIT(int c)          { kbas_ExitProcess(c); }
+func int  MUTEX_CREATE(string n) { return kbas_CreateMutex(n); }
+func bool MUTEX_LOCK(int h, int t)   { return kbas_LockMutex(h, t); }
+func bool MUTEX_UNLOCK(int h)    { return kbas_UnlockMutex(h); }
+
+# ── Bellek ──
+func int  RAM_TOTAL()   { return kbas_GetTotalRAM(); }
+func int  RAM_FREE()    { return kbas_GetFreeRAM(); }
+func int  RAM_USAGE()   { return kbas_GetRAMUsagePercent(); }
+
+# ── Kayıt Defteri ──
+func int    REG_OPEN(int root, string key, bool write) { return kbas_RegOpenKey(root, key, write); }
+func int    REG_CREATE(int root, string key)  { return kbas_RegCreateKey(root, key); }
+func bool   REG_CLOSE(int k)                 { return kbas_RegCloseKey(k); }
+func string REG_GET_STR(int k, string name)  { return kbas_RegGetString(k, name); }
+func bool   REG_SET_STR(int k, string name, string val) { return kbas_RegSetString(k, name, val); }
+func int    REG_GET_INT(int k, string name)  { return kbas_RegGetDword(k, name); }
+func bool   REG_SET_INT(int k, string name, int val)    { return kbas_RegSetDword(k, name, val); }
+func bool   REG_DEL_VAL(int k, string name) { return kbas_RegDeleteValue2(k, name); }
+func bool   REG_DEL_KEY(int root, string key){ return kbas_RegDeleteKey2(root, key); }
+
+# ── Pano ──
+func string CLIPBOARD_GET()          { return kbas_GetClipboardText(); }
+func bool   CLIPBOARD_SET(string t)  { return kbas_SetClipboardText(t); }
+func bool   CLIPBOARD_HAS_TEXT()     { return kbas_ClipboardHasText(); }
+func bool   CLIPBOARD_CLEAR()        {
+    kbas_OpenClipboard();
+    bool ok = kbas_EmptyClipboard2();
+    kbas_CloseClipboard2();
+    return ok;
+}
+
+# ── Ses ──
+func bool   SND_PLAY(string p)     { return kbas_PlayWav(p); }
+func bool   SND_PLAY_WAIT(string p){ return kbas_PlayWavSync(p); }
+func void   SND_STOP()             { kbas_StopSound(); }
+func bool   SND_SYSTEM(string a)   { return kbas_PlaySystemSound(a); }
+func bool   SND_BEEP(int f, int ms){ return kbas_Beep2(f, ms); }
+func string SND_MCI(string cmd)    { return kbas_MciSend(cmd); }
+
+# ── Ortam & Kabuk ──
+func string ENV_GET(string n)               { return kbas_GetEnv(n); }
+func bool   ENV_SET(string n, string v)     { return kbas_SetEnv(n, v); }
+func string ENV_EXPAND(string s)            { return kbas_ExpandEnv(s); }
+func string FOLDER(int csidl)              { return kbas_GetFolderPath(csidl); }
+func string WIN_DIR()                      { return kbas_GetWindowsDir(); }
+func string SYS_DIR()                      { return kbas_GetSystemDir(); }
+func int    DRIVE_TYPE(string root)        { return kbas_GetDriveType2(root); }
+func int    DISK_FREE(string path)         { return kbas_GetDiskFreeSpaceMB(path); }
+func int    DISK_TOTAL(string path)        { return kbas_GetDiskTotalSpaceMB(path); }
+func int    DRIVE_MASK()                   { return kbas_GetLogicalDrives2(); }
+
+# ── Konsol ──
+func bool   CON_OPEN()              { return kbas_AllocConsole2(); }
+func bool   CON_CLOSE()             { return kbas_FreeConsole2(); }
+func bool   CON_TITLE(string t)     { return kbas_SetConsoleTitle2(t); }
+func bool   CON_WRITE(string t)     { return kbas_WriteConsole2(t); }
+func string CON_READ(int max)       { return kbas_ReadConsole2(max); }
+
+func bool   STR_EQ(string a, string b) { return kbas_strcmp(a, b); }
+func bool   CON_CURSOR(int x, int y){ return kbas_SetConsoleCursor(x, y); }
+func bool   CON_COLOR(int fg, int bg){ return kbas_SetConsoleColor(fg, bg); }
+func void MSG_BOX(string text, string title) { kbas_MsgBox(text, title); }
+
+# ── Sistem Bilgisi ──
+func string COMPUTER_NAME()  { return kbas_GetComputerName2(); }
+func string USER_NAME()      { return kbas_GetUserName2(); }
+func int    CPU_COUNT()      { return kbas_GetCPUCount(); }
+func int    DATE_YEAR()      { return kbas_GetYear(); }
+func int    DATE_MONTH()     { return kbas_GetMonth(); }
+func int    DATE_DAY()       { return kbas_GetDay(); }
+func int    DATE_WEEKDAY()   { return kbas_GetDayOfWeek(); }
+func int    TIME_HOUR()      { return kbas_GetHour(); }
+func int    TIME_MINUTE()    { return kbas_GetMinute(); }
+func int    TIME_SECOND()    { return kbas_GetSecond(); }
+func int    TIME_MSEC()      { return kbas_GetMillisecond(); }
+func int    OS_MAJOR()       { return kbas_GetOSMajor(); }
+func int    OS_MINOR()       { return kbas_GetOSMinor(); }
+func int    SCREEN_W()       { return kbas_GetScreenWidth2(); }
+func int    SCREEN_H()       { return kbas_GetScreenHeight2(); }
+func int    MONITOR_COUNT()  { return kbas_GetMonitorCount(); }
+
+# ── Güç ──
+func bool ON_BATTERY()     { return kbas_IsOnBattery(); }
+func int  BATTERY_PCT()    { return kbas_BatteryPercent(); }
+func bool POWER_SHUTDOWN() { return kbas_Shutdown(); }
+func bool POWER_REBOOT()   { return kbas_Reboot(); }
+func bool POWER_LOGOFF()   { return kbas_Logoff(); }
+func bool LOCK_PC()        { return kbas_LockWorkstation2(); }
+
+# ── Hata ──
+func int    LAST_ERROR()         { return kbas_GetLastError2(); }
+func string LAST_ERROR_MSG()     { return kbas_GetLastErrorMessage(); }
+func string ERROR_MSG(int code)  { return kbas_GetErrorMessage(code); }

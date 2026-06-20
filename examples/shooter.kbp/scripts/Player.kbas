@@ -1,0 +1,25 @@
+
+
+
+
+static class Player
+{
+	func void init()
+	{
+		PlayerState.x = 0.0
+        PlayerState.y = 0.0
+        PlayerState.z = 0.0
+        PlayerState.dx = 0.0
+        PlayerState.dy = 0.0
+        PlayerState.dz = 1.0
+        PlayerState.yaw = 0.0
+        PlayerState.pitch = 0.0
+        PlayerState.speed = 15.0
+        PlayerState.camHeight = 1.8
+	}
+
+	func void update()
+	{
+		InputSystem.playerInput()
+	}
+}

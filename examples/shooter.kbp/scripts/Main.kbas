@@ -1,0 +1,82 @@
+# ══════════════════════════════════════════════════════
+#  scripts/Main.kbas  —  Oyun Mantığı
+#  BEGIN_DRAWING / END_DRAWING arasında çağrılır.
+# ══════════════════════════════════════════════════════
+
+static class Main {
+    func void Init() {
+        Player.init()
+        BulletSystem.init()
+        EnemySystem.init()
+    }
+
+    func void Update() {
+        CLEAR_BACKGROUND(SKYBLUE())
+
+        # Mantık güncellemeleri
+        Player.update()
+        BulletSystem.update()
+        EnemySystem.update()
+
+        # Çarpışma Kontrolü (Mermi <-> Düşman)
+        # B1
+        if (B1.active) {
+            if (E1.active and B1.x > E1.x - 1.5 and B1.x < E1.x + 1.5 and B1.z > E1.z - 1.5 and B1.z < E1.z + 1.5) { B1.active = false; E1.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E2.active and B1.x > E2.x - 1.5 and B1.x < E2.x + 1.5 and B1.z > E2.z - 1.5 and B1.z < E2.z + 1.5) { B1.active = false; E2.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E3.active and B1.x > E3.x - 1.5 and B1.x < E3.x + 1.5 and B1.z > E3.z - 1.5 and B1.z < E3.z + 1.5) { B1.active = false; E3.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E4.active and B1.x > E4.x - 1.5 and B1.x < E4.x + 1.5 and B1.z > E4.z - 1.5 and B1.z < E4.z + 1.5) { B1.active = false; E4.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E5.active and B1.x > E5.x - 1.5 and B1.x < E5.x + 1.5 and B1.z > E5.z - 1.5 and B1.z < E5.z + 1.5) { B1.active = false; E5.active = false; ScoreState.score = ScoreState.score + 10; }
+        }
+        # B2
+        if (B2.active) {
+            if (E1.active and B2.x > E1.x - 1.5 and B2.x < E1.x + 1.5 and B2.z > E1.z - 1.5 and B2.z < E1.z + 1.5) { B2.active = false; E1.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E2.active and B2.x > E2.x - 1.5 and B2.x < E2.x + 1.5 and B2.z > E2.z - 1.5 and B2.z < E2.z + 1.5) { B2.active = false; E2.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E3.active and B2.x > E3.x - 1.5 and B2.x < E3.x + 1.5 and B2.z > E3.z - 1.5 and B2.z < E3.z + 1.5) { B2.active = false; E3.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E4.active and B2.x > E4.x - 1.5 and B2.x < E4.x + 1.5 and B2.z > E4.z - 1.5 and B2.z < E4.z + 1.5) { B2.active = false; E4.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E5.active and B2.x > E5.x - 1.5 and B2.x < E5.x + 1.5 and B2.z > E5.z - 1.5 and B2.z < E5.z + 1.5) { B2.active = false; E5.active = false; ScoreState.score = ScoreState.score + 10; }
+        }
+        # B3
+        if (B3.active) {
+            if (E1.active and B3.x > E1.x - 1.5 and B3.x < E1.x + 1.5 and B3.z > E1.z - 1.5 and B3.z < E1.z + 1.5) { B3.active = false; E1.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E2.active and B3.x > E2.x - 1.5 and B3.x < E2.x + 1.5 and B3.z > E2.z - 1.5 and B3.z < E2.z + 1.5) { B3.active = false; E2.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E3.active and B3.x > E3.x - 1.5 and B3.x < E3.x + 1.5 and B3.z > E3.z - 1.5 and B3.z < E3.z + 1.5) { B3.active = false; E3.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E4.active and B3.x > E4.x - 1.5 and B3.x < E4.x + 1.5 and B3.z > E4.z - 1.5 and B3.z < E4.z + 1.5) { B3.active = false; E4.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E5.active and B3.x > E5.x - 1.5 and B3.x < E5.x + 1.5 and B3.z > E5.z - 1.5 and B3.z < E5.z + 1.5) { B3.active = false; E5.active = false; ScoreState.score = ScoreState.score + 10; }
+        }
+        # B4
+        if (B4.active) {
+            if (E1.active and B4.x > E1.x - 1.5 and B4.x < E1.x + 1.5 and B4.z > E1.z - 1.5 and B4.z < E1.z + 1.5) { B4.active = false; E1.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E2.active and B4.x > E2.x - 1.5 and B4.x < E2.x + 1.5 and B4.z > E2.z - 1.5 and B2.z < E2.z + 1.5) { B4.active = false; E2.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E3.active and B4.x > E3.x - 1.5 and B4.x < E3.x + 1.5 and B4.z > E3.z - 1.5 and B4.z < E3.z + 1.5) { B4.active = false; E3.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E4.active and B4.x > E4.x - 1.5 and B4.x < E4.x + 1.5 and B4.z > E4.z - 1.5 and B4.z < E4.z + 1.5) { B4.active = false; E4.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E5.active and B4.x > E5.x - 1.5 and B4.x < E5.x + 1.5 and B4.z > E5.z - 1.5 and B4.z < E5.z + 1.5) { B4.active = false; E5.active = false; ScoreState.score = ScoreState.score + 10; }
+        }
+        # B5
+        if (B5.active) {
+            if (E1.active and B5.x > E1.x - 1.5 and B5.x < E1.x + 1.5 and B5.z > E1.z - 1.5 and B5.z < E1.z + 1.5) { B5.active = false; E1.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E2.active and B5.x > E2.x - 1.5 and B5.x < E2.x + 1.5 and B5.z > E2.z - 1.5 and B5.z < E2.z + 1.5) { B5.active = false; E2.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E3.active and B5.x > E3.x - 1.5 and B5.x < E3.x + 1.5 and B5.z > E3.z - 1.5 and B5.z < E3.z + 1.5) { B5.active = false; E3.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E4.active and B5.x > E4.x - 1.5 and B5.x < E4.x + 1.5 and B5.z > E4.z - 1.5 and B5.z < E4.z + 1.5) { B5.active = false; E4.active = false; ScoreState.score = ScoreState.score + 10; }
+            if (E5.active and B5.x > E5.x - 1.5 and B5.x < E5.x + 1.5 and B5.z > E5.z - 1.5 and B5.z < E5.z + 1.5) { B5.active = false; E5.active = false; ScoreState.score = ScoreState.score + 10; }
+        }
+
+
+        # 3D Çizim
+        BEGIN_3D(PlayerState.x, PlayerState.y + PlayerState.camHeight, PlayerState.z, 
+                 PlayerState.x + PlayerState.dx, PlayerState.y + PlayerState.camHeight + PlayerState.dy, PlayerState.z + PlayerState.dz)
+        
+        World.draw()
+        BulletSystem.draw()
+        EnemySystem.draw()
+
+        END_3D()
+
+        # 2D Arayüz (Nişangah ve Skor)
+        int cx = SCREEN_WIDTH() / 2
+        int cy = SCREEN_HEIGHT() / 2
+        DRAW_RECTANGLE(cx - 2, cy - 2, 4, 4, RED())
+        
+        DRAW_FPS(10, 10)
+        DRAW_SCORE(ScoreState.score, 10, 40, 20, DARKGRAY())
+    }
+}

@@ -1,0 +1,12 @@
+
+
+static class World 
+{
+    func void draw() 
+	{
+        DRAW_PLANE(0.0, -0.01, 0.0, 100.0, 100.0, GREEN())   
+        DRAW_GRID(100, 1.0)
+        DRAW_CUBE(0.0, 1.0, 5.0, 2.0, 2.0, 2.0, RED())
+        DRAW_CUBE_WIRES(0.0, 1.0, 5.0, 2.0, 2.0, 2.0, BLACK())
+    }
+}

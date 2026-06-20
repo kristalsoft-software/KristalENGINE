@@ -1,0 +1,93 @@
+
+
+static class B1 { decimal x; decimal y; decimal z; decimal dx; decimal dy; decimal dz; bool active; }
+static class B2 { decimal x; decimal y; decimal z; decimal dx; decimal dy; decimal dz; bool active; }
+static class B3 { decimal x; decimal y; decimal z; decimal dx; decimal dy; decimal dz; bool active; }
+static class B4 { decimal x; decimal y; decimal z; decimal dx; decimal dy; decimal dz; bool active; }
+static class B5 { decimal x; decimal y; decimal z; decimal dx; decimal dy; decimal dz; bool active; }
+
+static class BulletSystem
+{
+    func void init() {
+        B1.active = false
+        B2.active = false
+        B3.active = false
+        B4.active = false
+        B5.active = false
+    }
+
+    func void shoot(decimal px, decimal py, decimal pz, decimal pdx, decimal pdy, decimal pdz) {
+        decimal speed = 50.0
+        
+        if (!B1.active) {
+            B1.x = px; B1.y = py; B1.z = pz;
+            B1.dx = pdx * speed; B1.dy = pdy * speed; B1.dz = pdz * speed;
+            B1.active = true; return;
+        }
+        if (!B2.active) {
+            B2.x = px; B2.y = py; B2.z = pz;
+            B2.dx = pdx * speed; B2.dy = pdy * speed; B2.dz = pdz * speed;
+            B2.active = true; return;
+        }
+        if (!B3.active) {
+            B3.x = px; B3.y = py; B3.z = pz;
+            B3.dx = pdx * speed; B3.dy = pdy * speed; B3.dz = pdz * speed;
+            B3.active = true; return;
+        }
+        if (!B4.active) {
+            B4.x = px; B4.y = py; B4.z = pz;
+            B4.dx = pdx * speed; B4.dy = pdy * speed; B4.dz = pdz * speed;
+            B4.active = true; return;
+        }
+        if (!B5.active) {
+            B5.x = px; B5.y = py; B5.z = pz;
+            B5.dx = pdx * speed; B5.dy = pdy * speed; B5.dz = pdz * speed;
+            B5.active = true; return;
+        }
+    }
+
+    func void update() {
+        decimal dt = FRAME_TIME()
+        
+        if (B1.active) {
+            B1.x = B1.x + (B1.dx * dt)
+            B1.y = B1.y + (B1.dy * dt)
+            B1.z = B1.z + (B1.dz * dt)
+            # mermi çok uzağa giderse kaybolsun
+            if (B1.x > 500.0 or B1.x < -500.0 or B1.z > 500.0 or B1.z < -500.0) { B1.active = false }
+        }
+        if (B2.active) {
+            B2.x = B2.x + (B2.dx * dt)
+            B2.y = B2.y + (B2.dy * dt)
+            B2.z = B2.z + (B2.dz * dt)
+            if (B2.x > 500.0 or B2.x < -500.0 or B2.z > 500.0 or B2.z < -500.0) { B2.active = false }
+        }
+        if (B3.active) {
+            B3.x = B3.x + (B3.dx * dt)
+            B3.y = B3.y + (B3.dy * dt)
+            B3.z = B3.z + (B3.dz * dt)
+            if (B3.x > 500.0 or B3.x < -500.0 or B3.z > 500.0 or B3.z < -500.0) { B3.active = false }
+        }
+        if (B4.active) {
+            B4.x = B4.x + (B4.dx * dt)
+            B4.y = B4.y + (B4.dy * dt)
+            B4.z = B4.z + (B4.dz * dt)
+            if (B4.x > 500.0 or B4.x < -500.0 or B4.z > 500.0 or B4.z < -500.0) { B4.active = false }
+        }
+        if (B5.active) {
+            B5.x = B5.x + (B5.dx * dt)
+            B5.y = B5.y + (B5.dy * dt)
+            B5.z = B5.z + (B5.dz * dt)
+            if (B5.x > 500.0 or B5.x < -500.0 or B5.z > 500.0 or B5.z < -500.0) { B5.active = false }
+        }
+    }
+
+    func void draw() {
+        int color = YELLOW()
+        if (B1.active) { DRAW_CUBE(B1.x, B1.y, B1.z, 0.2, 0.2, 0.2, color) }
+        if (B2.active) { DRAW_CUBE(B2.x, B2.y, B2.z, 0.2, 0.2, 0.2, color) }
+        if (B3.active) { DRAW_CUBE(B3.x, B3.y, B3.z, 0.2, 0.2, 0.2, color) }
+        if (B4.active) { DRAW_CUBE(B4.x, B4.y, B4.z, 0.2, 0.2, 0.2, color) }
+        if (B5.active) { DRAW_CUBE(B5.x, B5.y, B5.z, 0.2, 0.2, 0.2, color) }
+    }
+}

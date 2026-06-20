@@ -1,0 +1,330 @@
+@INDICATE "-lraylib"
+@INDICATE "-lopengl32"
+@INDICATE "-lgdi32"
+@INDICATE "-lwinmm"
+@IMPORT "lib/raylib/libraylib.dll"
+
+external C """
+#ifndef __cplusplus
+#define bool _Bool
+#endif
+
+#ifdef CloseWindow
+#undef CloseWindow
+#endif
+#ifdef DrawText
+#undef DrawText
+#endif
+
+void InitWindow(int width, int height, const char *title);
+bool WindowShouldClose(void);
+void rlCloseWindow(void) __asm__("CloseWindow");
+void ToggleFullscreen(void);
+void SetTargetFPS(int fps);
+void BeginDrawing(void);
+void EndDrawing(void);
+
+typedef struct Vector2 { float x; float y; } Vector2;
+typedef struct Vector3 { float x; float y; float z; } Vector3;
+typedef struct Color { unsigned char r, g, b, a; } Color;
+typedef struct Camera3D {
+    Vector3 position;
+    Vector3 target;
+    Vector3 up;
+    float fovy;
+    int projection;
+} Camera3D;
+
+void ClearBackground(Color color);
+const char* TextFormat(const char *text, ...);
+void rlDrawText(const char *text, int posX, int posY, int fontSize, Color color) __asm__("DrawText");
+void DrawCube(Vector3 position, float width, float height, float length, Color color);
+void DrawCubeWires(Vector3 position, float width, float height, float length, Color color);
+void DrawPlane(Vector3 centerPos, Vector2 size, Color color);
+void BeginMode3D(Camera3D camera);
+void EndMode3D(void);
+bool IsKeyDown(int key);
+float GetFrameTime(void);
+void DrawFPS(int posX, int posY);
+int GetScreenWidth(void);
+int GetScreenHeight(void);
+void DisableCursor(void);
+Vector2 GetMouseDelta(void);
+bool IsMouseButtonPressed(int button);
+void DrawGrid(int slices, float spacing);
+void DrawRectangle(int posX, int posY, int width, int height, Color color);
+
+
+
+void kbas_InitWindow(int width, int height, char* title) {
+    InitWindow(width, height, title);
+}
+
+bool kbas_WindowShouldClose() {
+    return WindowShouldClose();
+}
+
+void kbas_CloseWindow() {
+    rlCloseWindow();
+}
+
+void kbas_ToggleFullscreen() {
+    ToggleFullscreen();
+}
+
+void kbas_SetTargetFPS(int fps) {
+    SetTargetFPS(fps);
+}
+
+void kbas_BeginDrawing() {
+    BeginDrawing();
+}
+
+void kbas_EndDrawing() {
+    EndDrawing();
+}
+
+void kbas_ClearBackground(int c) {
+    Color col = {(c>>16)&0xFF, (c>>8)&0xFF, c&0xFF, 0xFF};
+    ClearBackground(col);
+}
+
+void kbas_DrawText(char* text, int x, int y, int fontSize, int c) {
+    Color col = {(c>>16)&0xFF, (c>>8)&0xFF, c&0xFF, 0xFF};
+    rlDrawText(text, x, y, fontSize, col);
+}
+
+void kbas_DrawScore(int score, int x, int y, int fontSize, int c) {
+    Color col = {(c>>16)&0xFF, (c>>8)&0xFF, c&0xFF, 0xFF};
+    rlDrawText(TextFormat("SKOR: %d", score), x, y, fontSize, col);
+}
+
+void kbas_DrawCube(double x, double y, double z, double w, double h, double l, int c) {
+    Color col = {(c>>16)&0xFF, (c>>8)&0xFF, c&0xFF, 0xFF};
+    DrawCube((Vector3){(float)x, (float)y, (float)z}, (float)w, (float)h, (float)l, col);
+}
+
+void kbas_DrawCubeWires(double x, double y, double z, double w, double h, double l, int c) {
+    Color col = {(c>>16)&0xFF, (c>>8)&0xFF, c&0xFF, 0xFF};
+    DrawCubeWires((Vector3){(float)x, (float)y, (float)z}, (float)w, (float)h, (float)l, col);
+}
+
+void kbas_DrawPlane(double x, double y, double z, double w, double d, int c) {
+    Color col = {(c>>16)&0xFF, (c>>8)&0xFF, c&0xFF, 0xFF};
+    DrawPlane((Vector3){(float)x, (float)y, (float)z}, (Vector2){(float)w, (float)d}, col);
+}
+
+void kbas_BeginMode3D(double px, double py, double pz, double tx, double ty, double tz) {
+    Camera3D cam = {0};
+    cam.position = (Vector3){(float)px, (float)py, (float)pz};
+    cam.target = (Vector3){(float)tx, (float)ty, (float)tz};
+    cam.up = (Vector3){0.0f, 1.0f, 0.0f};
+    cam.fovy = 45.0f;
+    cam.projection = 0; // CAMERA_PERSPECTIVE
+    BeginMode3D(cam);
+}
+
+void kbas_EndMode3D() {
+    EndMode3D();
+}
+
+bool kbas_IsKeyDown(int key) {
+    return IsKeyDown(key);
+}
+
+double kbas_GetFrameTime() {
+    return (double)GetFrameTime();
+}
+
+void kbas_DrawFPS(int x, int y) {
+    DrawFPS(x, y);
+}
+
+int kbas_GetScreenWidth() {
+    return GetScreenWidth();
+}
+
+int kbas_GetScreenHeight() {
+    return GetScreenHeight();
+}
+
+void kbas_DisableCursor() {
+    DisableCursor();
+}
+
+double kbas_GetMouseDeltaX() {
+    return (double)GetMouseDelta().x;
+}
+
+double kbas_GetMouseDeltaY() {
+    return (double)GetMouseDelta().y;
+}
+
+bool kbas_IsMouseButtonPressed(int button) {
+    return IsMouseButtonPressed(button);
+}
+
+void kbas_DrawGrid(int slices, double spacing) {
+    DrawGrid(slices, (float)spacing);
+}
+
+void kbas_DrawRectangle(int x, int y, int w, int h, int c) {
+    Color col = {(c>>16)&0xFF, (c>>8)&0xFF, c&0xFF, 0xFF};
+    DrawRectangle(x, y, w, h, col);
+}
+"""
+
+# Renkler
+func int RED() { return 0xFF4136; }
+func int GREEN() { return 0x2ECC40; }
+func int BLUE() { return 0x0074D9; }
+func int WHITE() { return 0xFFFFFF; }
+func int BLACK() { return 0x000000; }
+func int YELLOW() { return 0xFFDC00; }
+func int ORANGE() { return 0xFF851B; }
+func int PURPLE() { return 0xB10DC9; }
+func int GRAY() { return 0xAAAAAA; }
+func int DARKGRAY() { return 0x333333; }
+func int LIGHTGRAY() { return 0xCCCCCC; }
+func int RAYWHITE() { return 0xF5F5F5; }
+func int SKYBLUE() { return 0x66B2FF; }
+
+# Klavye Tuşları
+func int KEY_W() { return 87; }
+func int KEY_A() { return 65; }
+func int KEY_S() { return 83; }
+func int KEY_D() { return 68; }
+func int KEY_SPACE() { return 32; }
+
+# KBas C-Wrapper fonksiyon eşleştirmeleri
+func void kbas_InitWindow(int width, int height, string title);
+func bool kbas_WindowShouldClose();
+func void kbas_CloseWindow();
+func void kbas_ToggleFullscreen();
+func void kbas_SetTargetFPS(int fps);
+func void kbas_BeginDrawing();
+func void kbas_EndDrawing();
+func void kbas_ClearBackground(int color);
+func void kbas_DrawText(string text, int x, int y, int fontSize, int color);
+func void kbas_DrawScore(int score, int x, int y, int fontSize, int color);
+func void kbas_DrawCube(decimal x, decimal y, decimal z, decimal w, decimal h, decimal l, int color);
+func void kbas_DrawCubeWires(decimal x, decimal y, decimal z, decimal w, decimal h, decimal l, int c);
+func void kbas_DrawPlane(decimal x, decimal y, decimal z, decimal w, decimal d, int c);
+func void kbas_BeginMode3D(decimal px, decimal py, decimal pz, decimal tx, decimal ty, decimal tz);
+func void kbas_EndMode3D();
+func bool kbas_IsKeyDown(int key);
+func decimal kbas_GetFrameTime();
+func void kbas_DrawFPS(int x, int y);
+func int kbas_GetScreenWidth();
+func int kbas_GetScreenHeight();
+func void kbas_DisableCursor();
+func decimal kbas_GetMouseDeltaX();
+func decimal kbas_GetMouseDeltaY();
+func bool kbas_IsMouseButtonPressed(int button);
+func void kbas_DrawGrid(int slices, decimal spacing);
+func void kbas_DrawRectangle(int x, int y, int w, int h, int c);
+
+# KBas Arayüzü
+func void INIT_WINDOW(int width, int height, string title) {
+    kbas_InitWindow(width, height, title);
+}
+
+func bool WINDOW_SHOULD_CLOSE() {
+    return kbas_WindowShouldClose();
+}
+
+func void CLOSE_WINDOW() {
+    kbas_CloseWindow();
+}
+
+func void TOGGLE_FULLSCREEN() {
+    kbas_ToggleFullscreen();
+}
+
+func void SET_FPS(int fps) {
+    kbas_SetTargetFPS(fps);
+}
+
+func void BEGIN_DRAWING() {
+    kbas_BeginDrawing();
+}
+
+func void END_DRAWING() {
+    kbas_EndDrawing();
+}
+
+func void CLEAR_BACKGROUND(int c) {
+    kbas_ClearBackground(c);
+}
+
+func void DRAW_TEXT(string t, int x, int y, int s, int c) {
+    kbas_DrawText(t, x, y, s, c);
+}
+
+func void DRAW_SCORE(int s, int x, int y, int sz, int c) {
+    kbas_DrawScore(s, x, y, sz, c);
+}
+
+func void BEGIN_3D(decimal px, decimal py, decimal pz, decimal tx, decimal ty, decimal tz) {
+    kbas_BeginMode3D(px, py, pz, tx, ty, tz);
+}
+
+func void END_3D() {
+    kbas_EndMode3D();
+}
+
+func void DRAW_CUBE(decimal x, decimal y, decimal z, decimal w, decimal h, decimal l, int c) {
+    kbas_DrawCube(x, y, z, w, h, l, c);
+}
+
+func void DRAW_CUBE_WIRES(decimal x, decimal y, decimal z, decimal w, decimal h, decimal l, int c) {
+    kbas_DrawCubeWires(x, y, z, w, h, l, c);
+}
+
+func void DRAW_PLANE(decimal x, decimal y, decimal z, decimal w, decimal d, int c) {
+    kbas_DrawPlane(x, y, z, w, d, c);
+}
+
+func bool KEY_DOWN(int key) {
+    return kbas_IsKeyDown(key);
+}
+
+func decimal FRAME_TIME() {
+    return kbas_GetFrameTime();
+}
+
+func void DRAW_FPS(int x, int y) {
+    kbas_DrawFPS(x, y);
+}
+
+func int SCREEN_WIDTH() {
+    return kbas_GetScreenWidth();
+}
+
+func int SCREEN_HEIGHT() {
+    return kbas_GetScreenHeight();
+}
+
+func void DISABLE_CURSOR() {
+    kbas_DisableCursor();
+}
+
+func decimal MOUSE_DELTA_X() {
+    return kbas_GetMouseDeltaX();
+}
+
+func decimal MOUSE_DELTA_Y() {
+    return kbas_GetMouseDeltaY();
+}
+
+func bool MOUSE_PRESSED(int button) {
+    return kbas_IsMouseButtonPressed(button);
+}
+
+func void DRAW_GRID(int slices, decimal spacing) {
+    kbas_DrawGrid(slices, spacing);
+}
+
+func void DRAW_RECTANGLE(int x, int y, int w, int h, int c) {
+    kbas_DrawRectangle(x, y, w, h, c);
+}

@@ -1,0 +1,47 @@
+# ══════════════════════════════════════════════════════
+#  PROJECT.kbas  —  Ana Giriş Noktası
+#  Hiç C kodu yok; yalnızca .kbas modülleri.
+# ══════════════════════════════════════════════════════
+@OBJECT lib/raylib/raylib.kbas # Raylib kütüphanesi
+
+@OBJECT lib/win32/win32api.kbas   # Win32 tam binding (kbas_* + sabitler)
+@OBJECT lib/Launcher.kbas          # Diyalog tabanlı başlatıcı
+@OBJECT lib/WindowFX.kbas          # Pencere efektleri
+@OBJECT scripts/PlayerState.kbas
+@OBJECT scripts/Bullet.kbas
+@OBJECT scripts/InputSystem.kbas
+@OBJECT scripts/Player.kbas
+@OBJECT scripts/World.kbas
+@OBJECT scripts/Enemy.kbas
+@OBJECT scripts/Main.kbas
+
+# ── Başlatıcı ──────────────────────────────────────────
+if (Launcher.Run() == false) {
+    EXIT(0)
+}
+
+# ── Pencere ────────────────────────────────────────────
+# Eğer DesktopMode seçilmediyse normal tam ekran başlat.
+if (Launcher.IsDesktopMode()) {
+    INIT_WINDOW(1280, 720, "KristalBASIC Shooter")
+    SET_FPS(60)
+    DISABLE_CURSOR()
+    WAIT(100)
+    WindowFX.ApplyDesktopMode(102, 191, 255)   # SKYBLUE → şeffaf
+} else {
+    INIT_WINDOW(1280, 720, "KristalBASIC Shooter")
+    TOGGLE_FULLSCREEN()
+    SET_FPS(60)
+    DISABLE_CURSOR()
+}
+
+# ── Oyun Başlat ────────────────────────────────────────
+Main.Init()
+
+while (!WINDOW_SHOULD_CLOSE()) {
+    BEGIN_DRAWING()
+    Main.Update()
+    END_DRAWING()
+}
+
+CLOSE_WINDOW()
