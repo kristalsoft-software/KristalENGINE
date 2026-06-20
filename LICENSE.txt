@@ -1,26 +1,183 @@
-KRISTALSOFT YAZILIM LİSANS SÖZLEŞMESİ (EULA)
-Yayıncı: Kristalsoft (Eren Kocakgöl)
+========================================================================
+ KRISTALSOFT YAZILIM LİSANS SÖZLEŞMESİ
+ (SON KULLANICI LİSANS SÖZLEŞMESİ — EULA)
+========================================================================
+ Yazılım       : KristalBASIC (Derleyici) ve KristalENGINE (Entegre Geliştirme Ortamı)
+ Sürüm Serisi  : 2.x
+ Yayıncı       : Kristalsoft (Eren Kocakgöl)
+ Web            : https://www.kristalsoft.com.tr
+ Telif Hakkı   : © 2024–2026 Kristalsoft. Tüm hakları saklıdır.
+========================================================================
 
-Yazılım: KristalBASIC (Derleyici) ve KristalENGINE (Oyun Motoru / Editör)
-Bu lisans sözleşmesi, Kristalsoft tarafından sağlanan KristalBASIC ve KristalENGINE yazılımlarının ("Yazılım") kullanım şartlarını belirler. Yazılımı indirerek veya kullanarak aşağıdaki şartları kabul etmiş sayılırsınız:
-1. ÜCRETSİZ KULLANIM VE SÜRÜM GARANTİSİ (SÜRÜM 2.X)
-KristalBASIC 2.0 ve KristalENGINE 2 sürümleri ile bu sürümlere ait tüm alt güncellemeler (örneğin 2.1, 2.2, 2.9 vb.) sonsuza dek tamamen ücretsiz olarak dağıtılacaktır. Bu sürümleri ticari veya ticari olmayan herhangi bir amaçla, herhangi bir süre kısıtlaması olmaksızın ücretsiz olarak kullanabilirsiniz.
-2. KULLANICI ÜRETİMİ İÇERİKLERİN MÜLKİYETİ (SİZİN KODUNUZ, SİZİN PROJENİZ)
-Yazılım kullanılarak geliştirilen, derlenen ve dışa aktarılan tüm oyunlar, programlar ve kaynak kodları tamamen size (kullanıcıya) aittir.
+ÖNEMLİ — LÜTFEN DİKKATLİCE OKUYUN
 
-Ürettiğiniz yazılımları dilediğiniz gibi satabilir, dağıtabilir veya kapalı kaynak olarak lisanslayabilirsiniz.
-Kristalsoft, ürettiğiniz projeler üzerinden hiçbir hak, pay, komisyon veya telif ücreti (royalty) talep etmez.
+Bu Son Kullanıcı Lisans Sözleşmesi ("Sözleşme"), Kristalsoft tarafından
+geliştirilen KristalBASIC ve KristalENGINE yazılımlarının ("Yazılım")
+kullanım koşullarını düzenleyen hukuki bir belgedir.
 
-3. GELECEK SÜRÜMLER VE ÜCRETLENDİRME HAKKI
-Kristalsoft (Eren Kocakgöl), Yazılımın gelecekteki ana sürümlerini (örneğin KristalBASIC 3.0, KristalENGINE 3 ve sonrası) ücretli yapma, farklı lisans modellerine geçirme veya abonelik sistemine bağlama hakkını saklı tutar. Ancak bu durum, halihazırda ücretsiz olarak yayınlanmış olan 2.x serisi sürümlerin ücretsiz kalma garantisini hiçbir şekilde etkilemez.
-4. KISITLAMALAR VE KAPALI KAYNAK POLİTİKASI
-Yazılım kapalı kaynak olarak sunulmaktadır. Aşağıdaki eylemler kesinlikle yasaktır:
+Yazılımı indirerek, kurarak veya herhangi bir şekilde kullanmaya
+başlayarak bu Sözleşme'yi okuduğunuzu, anladığınızı ve tüm şartlarını
+kabul ettiğinizi beyan etmiş sayılırsınız.
 
-KristalBASIC derleyicisinin veya KristalENGINE editörünün kaynak kodunu elde etmeye çalışmak, tersine mühendislik (reverse engineering) yapmak veya kaynak koda dönüştürmek (decompile).
-Yazılımın çalıştırılabilir (binary) dosyalarını, editörünü veya derleyicisini kendi adınıza satmak, ücret karşılığı dağıtmak veya Kristalsoft'un izni olmadan farklı bir isimle (rebranding) pazarlamak.
+Bu şartları kabul etmiyorsanız Yazılımı indirmeyin, kurmayın ve
+kullanmayın.
 
-5. SORUMLULUK REDDİ
-Bu yazılım "olduğu gibi" (as is) sağlanmaktadır. Kristalsoft, yazılımın hatasız çalışacağını veya belirli bir amaca uygunluğunu garanti etmez. Yazılımın kullanımı sırasında oluşabilecek veri kayıpları, ticari zararlar veya diğer sorunlardan Kristalsoft sorumlu tutulamaz.
-6. ÜÇÜNCÜ TARAF YAZILIMLAR VE AÇIK KAYNAK LİSANSLARI
-KristalBASIC ve KristalENGINE; Raylib, PySide, MinGW (GCC) gibi çeşitli açık kaynaklı üçüncü taraf yazılımları, kütüphaneleri ve araçları kullanır veya barındırır. Bu üçüncü taraf yazılımlar Kristalsoft'a ait değildir ve kendi orijinal açık kaynak lisanslarına (zlib, LGPL, GPL vb.) tabidir.
-İlgili yazılımların listesi, telif hakkı bildirimleri ve lisans metinleri, yazılımla birlikte sağlanan "THIRDPARTY.txt" dosyasında açıkça belirtilmiştir. Yazılımı kullanarak, bu üçüncü taraf bileşenlerin kendi lisans koşullarını da kabul etmiş sayılırsınız.
+------------------------------------------------------------------------
+MADDE 1 — ÜCRETSİZ KULLANIM VE KALICILIK GARANTİSİ (2.X SERİSİ)
+------------------------------------------------------------------------
+KristalBASIC 2.0 ve KristalENGINE 2 sürümleri ile bu sürümlere ait tüm
+alt güncellemeler (2.1, 2.2, 2.9 vb.) sonsuza dek tamamen ücretsiz
+olarak dağıtılacaktır.
+
+Bu sürümleri;
+  • ticari veya ticari olmayan herhangi bir projede,
+  • herhangi bir süre kısıtlaması olmaksızın,
+  • ücretsiz olarak kullanabilirsiniz.
+
+Bu garanti geri alınamaz ve gelecekteki sürüm politikaları bu garantiyi
+etkilemez.
+
+------------------------------------------------------------------------
+MADDE 2 — KULLANICIYA VERİLEN HAKLAR (KULLANIM LİSANSI)
+------------------------------------------------------------------------
+Kristalsoft, işbu Sözleşme kapsamında size aşağıdaki sınırlı, münhasır
+olmayan, devredilemez hakları tanımaktadır:
+
+  a) Yazılımı kendinize ait birden fazla cihaza kurma ve kullanma hakkı.
+  b) Yazılımı ticari veya ticari olmayan projelerde kullanma hakkı.
+  c) Yazılımı eğitim, araştırma ve geliştirme amacıyla kullanma hakkı.
+  d) Yazılımın yedek kopyasını arşiv amacıyla saklama hakkı.
+
+Bu Sözleşme'de açıkça verilmeyen hiçbir hak kullanıcıya tanınmamış
+sayılır.
+
+------------------------------------------------------------------------
+MADDE 3 — KULLANICI ÜRETİMİ İÇERİKLERİN MÜLKİYETİ
+------------------------------------------------------------------------
+Yazılım aracılığıyla geliştirilen, derlenen ve dışa aktarılan tüm
+oyunlar, programlar ve kaynak kodlar ("Kullanıcı Ürünleri") tamamen size
+aittir.
+
+  • Kullanıcı Ürünlerinizi dilediğiniz gibi satabilir, dağıtabilir veya
+    kapalı kaynak olarak lisanslayabilirsiniz.
+  • Kristalsoft, Kullanıcı Ürünleri üzerinden hiçbir pay, komisyon,
+    royalty veya başka bir hak talep etmez.
+  • Kullanıcı Ürünlerinize hangi lisansı uygulayacağınıza yalnızca siz
+    karar verirsiniz.
+
+NOT: Üçüncü taraf kütüphaneler (PySide6/Qt, Raylib, OpenSSL vb.)
+kendi lisans koşullarına tabidir. Bu kütüphaneleri kullanarak oluşturduğunuz
+ürünleri dağıtırken ilgili lisans gerekliliklerini kendiniz yerine
+getirmekle yükümlüsünüz. Ayrıntılar için THIRDPARTY.txt dosyasına bakınız.
+
+------------------------------------------------------------------------
+MADDE 4 — KISITLAMALAR VE YASAKLAR
+------------------------------------------------------------------------
+Aşağıdaki eylemler kesinlikle yasaktır:
+
+  a) TERSINE MÜHENDİSLİK: Yazılımın kaynak kodunu elde etmeye çalışmak,
+     tersine mühendislik (reverse engineering) yapmak, kaynak koda
+     dönüştürmek (decompile) veya parçalara ayırmak (disassemble).
+
+  b) YENİDEN DAĞITIM / YENIDEN MARKALAŞTIRMA: Yazılımın yürütülebilir
+     dosyalarını, editörünü veya derleyicisini kendi adınıza satmak,
+     ücret karşılığı dağıtmak, kiralamak, ödünç vermek veya Kristalsoft'un
+     önceden yazılı onayı olmaksızın farklı bir isimle sunmak.
+
+  c) ALT LİSANSLAMA: Bu Sözleşme kapsamında edindiğiniz hakları üçüncü
+     şahıslara devretmek veya alt lisans vermek.
+
+  d) HUKUKA AYKIRI KULLANIM: Yazılımı herhangi bir yasadışı amaçla veya
+     yürürlükteki mevzuata aykırı şekilde kullanmak.
+
+------------------------------------------------------------------------
+MADDE 5 — GELECEK SÜRÜMLER VE FİYATLANDIRMA POLİTİKASI
+------------------------------------------------------------------------
+Kristalsoft, Yazılımın gelecekteki ana sürümlerini (KristalBASIC 3.0,
+KristalENGINE 3 ve sonrası) ücretli yapma, farklı lisans modelleri
+uygulamaya koyma veya abonelik sistemine geçirme hakkını saklı tutar.
+
+Bu durum, halihazırda ücretsiz olarak yayınlanmış olan 2.x serisi
+sürümlerin ücretsiz kalma garantisini hiçbir surette etkilemez.
+
+------------------------------------------------------------------------
+MADDE 6 — ÜÇÜNCÜ TARAF YAZILIMLAR VE AÇIK KAYNAK LİSANSLARI
+------------------------------------------------------------------------
+KristalBASIC ve KristalENGINE; Python, PySide6/Qt, Raylib, MinGW-w64
+(GCC), OpenSSL ve çeşitli diğer açık kaynaklı bileşenler içermektedir.
+Bu bileşenler Kristalsoft'a ait değildir; kendi orijinal lisanslarına
+(zlib, LGPL v3, Apache 2.0 vb.) tabidir.
+
+Tüm üçüncü taraf bileşenlerin listesi, telif hakkı bildirimleri ve
+lisans metinleri Yazılımla birlikte gelen THIRDPARTY.txt dosyasında
+sunulmaktadır. Yazılımı kullanarak, bu üçüncü taraf bileşenlerin kendi
+lisans koşullarını da kabul etmiş sayılırsınız.
+
+------------------------------------------------------------------------
+MADDE 7 — GARANTİ REDDİ
+------------------------------------------------------------------------
+BU YAZILIM, AÇIK VEYA ZIMNİ HERHANGİ BİR GARANTİ OLMAKSIZIN "OLDUĞU
+GİBİ" (AS IS) SUNULMAKTADIR. KRİSTALSOFT, YAZILIMIN TİCARİ
+ELVERİŞLİLİĞİNİ, BELİRLİ BİR AMACA UYGUNLUĞUNU, DOĞRULUĞUNU,
+GÜVENİLİRLİĞİNİ VEYA İHLAL ETMEZLIĞINI AÇIK YA DA ZIMNİ OLARAK
+GARANTİ ETMEZ.
+
+YAZILIMIN KESİNTİSİZ, HATASIZ VEYA GÜVENLİ ÇALIŞACAĞINI TAAHHÜT ETMEZ.
+
+------------------------------------------------------------------------
+MADDE 8 — SORUMLULUK SINIRLAMASI
+------------------------------------------------------------------------
+KRİSTALSOFT VE YAZILIMI, YAZILIMIN KULLANIMINDAN VEYA
+KULLANILAMAMASINDAN KAYNAKLANAN; VERİ KAYBI, KAR KAYBI, İŞ KAYBI,
+İTİBAR KAYBI VEYA HERHANGİ BİR DOĞRUDAN, DOLAYLI, ÖZEL, ARIZİ YA DA
+SONUÇ OLARAK ORTAYA ÇIKAN ZARARDAN SORUMLU TUTULAMAZ; BU DURUM
+KRİSTALSOFT'UN BÖYLESİ BİR ZARARDAN HABERDAR EDİLMİŞ OLMASI HALİNDE
+DE GEÇERLİDİR.
+
+------------------------------------------------------------------------
+MADDE 9 — GİZLİLİK VE VERİ TOPLAMA
+------------------------------------------------------------------------
+Yazılım, kullanıcının kişisel verilerini, kimlik bilgilerini veya
+kullanım istatistiklerini Kristalsoft sunucularına aktarmaz. İnternet
+bağlantısı gerektiren özellikler (varsa) belgelenmiştir.
+
+------------------------------------------------------------------------
+MADDE 10 — SÖZLEŞMENİN FESHİ
+------------------------------------------------------------------------
+Bu Sözleşme'de belirtilen herhangi bir yükümlülüğü ihlal etmeniz
+halinde Yazılım lisansınız otomatik olarak sona erer. Lisansın sona
+ermesi durumunda Yazılımı kullanmayı derhal bırakmanız ve sisteminizden
+kaldırmanız gerekmektedir.
+
+Kristalsoft, gerekçe belirtmeksizin gelecekteki sürümlere yönelik bu
+Sözleşme'yi değiştirme hakkını saklı tutar; ancak bu durum 2.x serisi
+için verilen ücretsiz kalma garantisini etkilemez.
+
+------------------------------------------------------------------------
+MADDE 11 — YETKİLİ HUKUK VE UYUŞMAZLIK ÇÖZÜMÜ
+------------------------------------------------------------------------
+Bu Sözleşme, Türkiye Cumhuriyeti kanunlarına tabidir. İşbu Sözleşme'den
+veya Yazılımın kullanımından doğabilecek her türlü uyuşmazlıkta
+İstanbul Mahkemeleri ve İcra Daireleri münhasır yetki sahibidir.
+
+------------------------------------------------------------------------
+MADDE 12 — SÖZLEŞMENİN BÜTÜNLÜĞÜ VE BÖLÜNEBİLİRLİĞİ
+------------------------------------------------------------------------
+Bu Sözleşme, taraflar arasında Yazılımın kullanımına ilişkin tam ve
+münhasır mutabakattır; daha önceki yazılı veya sözlü tüm anlaşmaların
+yerini alır.
+
+Herhangi bir hükmün yetkili bir mahkeme tarafından geçersiz veya
+uygulanamaz bulunması halinde, söz konusu hüküm Sözleşme'den bağımsız
+olarak değerlendirilir ve kalan hükümler tam olarak yürürlükte kalmaya
+devam eder.
+
+------------------------------------------------------------------------
+İLETİŞİM / CONTACT
+------------------------------------------------------------------------
+Kristalsoft (Eren Kocakgöl)
+Mail : info@kristalsoft.com.tr
+Kişisel Mail : kocakgoleren@gmail.com
+
+© 2024–2026 Kristalsoft. Tüm hakları saklıdır.
+========================================================================
